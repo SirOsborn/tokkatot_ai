@@ -337,6 +337,8 @@ def main():
     
     # Check for resume flag
     resume_training = '--resume' in sys.argv
+    skip_efficientnet = '--skip-efficientnet' in sys.argv
+    skip_densenet = '--skip-densenet' in sys.argv
     
     # Configuration
     DATA_DIR = 'archive/data'
@@ -344,7 +346,7 @@ def main():
     SAVE_DIR.mkdir(exist_ok=True)
     
     BATCH_SIZE = 32
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 20
     LEARNING_RATE = 1e-4
     IMG_SIZE = 224
     NUM_WORKERS = 4
@@ -385,37 +387,61 @@ def main():
             print(f"⚠️  No DenseNet121 checkpoint found - will train from scratch")
         print("="*60)
     
-    # Train EfficientNetB0
-    efficientnet = EfficientNetB0Classifier(num_classes=len(CLASS_NAMES))
-    efficientnet, efficientnet_recall = train_model(
-        model=efficientnet,
-        model_name='EfficientNetB0',
-        train_loader=train_loader,
-        val_loader=val_loader,
-        num_epochs=NUM_EPOCHS,
-        device=device,
-        class_weights=class_weights,
-        save_dir=SAVE_DIR,
-        learning_rate=LEARNING_RATE,
-        use_recall_focus=True,
-        resume_from=resume_efficientnet
-    )
+    # Train EfficientNetB0 (unless skipped)
+    if skip_efficientnet and resume_efficientnet:
+        print("\n" + "="*60)
+        print("SKIPPING EfficientNetB0 (--skip-efficientnet flag)")
+        print("="*60)
+        print(f"✓ Loading existing checkpoint: {efficientnet_checkpoint}")
+        efficientnet = EfficientNetB0Classifier(num_classes=len(CLASS_NAMES))
+        checkpoint = torch.load(efficientnet_checkpoint, map_location=device)
+        efficientnet.load_state_dict(checkpoint['model_state_dict'])
+        efficientnet = efficientnet.to(device)
+        efficientnet_recall = checkpoint.get('recall', 0.0)
+        print(f"✓ Loaded with recall: {efficientnet_recall:.4f}")
+    else:
+        efficientnet = EfficientNetB0Classifier(num_classes=len(CLASS_NAMES))
+        efficientnet, efficientnet_recall = train_model(
+            model=efficientnet,
+            model_name='EfficientNetB0',
+            train_loader=train_loader,
+            val_loader=val_loader,
+            num_epochs=NUM_EPOCHS,
+            device=device,
+            class_weights=class_weights,
+            save_dir=SAVE_DIR,
+            learning_rate=LEARNING_RATE,
+            use_recall_focus=True,
+            resume_from=resume_efficientnet
+        )
     
-    # Train DenseNet121
-    densenet = DenseNet121Classifier(num_classes=len(CLASS_NAMES))
-    densenet, densenet_recall = train_model(
-        model=densenet,
-        model_name='DenseNet121',
-        train_loader=train_loader,
-        val_loader=val_loader,
-        num_epochs=NUM_EPOCHS,
-        device=device,
-        class_weights=class_weights,
-        save_dir=SAVE_DIR,
-        learning_rate=LEARNING_RATE,
-        use_recall_focus=True,
-        resume_from=resume_densenet
-    )
+    # Train DenseNet121 (unless skipped)
+    if skip_densenet and resume_densenet:
+        print("\n" + "="*60)
+        print("SKIPPING DenseNet121 (--skip-densenet flag)")
+        print("="*60)
+        print(f"✓ Loading existing checkpoint: {densenet_checkpoint}")
+        densenet = DenseNet121Classifier(num_classes=len(CLASS_NAMES))
+        checkpoint = torch.load(densenet_checkpoint, map_location=device)
+        densenet.load_state_dict(checkpoint['model_state_dict'])
+        densenet = densenet.to(device)
+        densenet_recall = checkpoint.get('recall', 0.0)
+        print(f"✓ Loaded with recall: {densenet_recall:.4f}")
+    else:
+        densenet = DenseNet121Classifier(num_classes=len(CLASS_NAMES))
+        densenet, densenet_recall = train_model(
+            model=densenet,
+            model_name='DenseNet121',
+            train_loader=train_loader,
+            val_loader=val_loader,
+            num_epochs=NUM_EPOCHS,
+            device=device,
+            class_weights=class_weights,
+            save_dir=SAVE_DIR,
+            learning_rate=LEARNING_RATE,
+            use_recall_focus=True,
+            resume_from=resume_densenet
+        )
     
     # Create and save ensemble
     print("\n" + "="*60)

@@ -17,10 +17,12 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         print("\nAvailable commands:")
-        print("  train          - Train the ensemble models from scratch")
-        print("  train --resume - Resume training from last checkpoint")
-        print("  test <image>   - Test inference on an image")
-        print("  eval           - Evaluate ensemble on test set")
+        print("  train                      - Train the ensemble models from scratch")
+        print("  train --resume             - Resume training from last checkpoint")
+        print("  train --resume --skip-efficientnet - Skip EfficientNetB0, train only DenseNet121")
+        print("  train --resume --skip-densenet     - Skip DenseNet121, train only EfficientNetB0")
+        print("  test <image>               - Test inference on an image")
+        print("  eval                       - Evaluate ensemble on test set")
         return
     
     command = sys.argv[1].lower()
