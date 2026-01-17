@@ -81,9 +81,31 @@ def main():
             print(f"\n⚠️  ISOLATION REQUIRED - {result['action']}")
     
     elif command == 'eval':
+        from evaluate import evaluate_ensemble
+        
+        # Check if ensemble model exists
+        model_path = Path('outputs/ensemble_model.pth')
+        if not model_path.exists():
+            print("Error: Ensemble model not found!")
+            print("Please train the model first: python main.py train")
+            return
+        
+        # Run evaluation
         print("Evaluating ensemble on test set...")
-        # Could add evaluation script here
-        print("Please run: python train.py (includes test evaluation)")
+        print("This may take several minutes...\n")
+        
+        evaluate_ensemble(
+            model_path='outputs/ensemble_model.pth',
+            data_dir='archive/data',
+            save_dir='outputs/evaluation',
+            healthy_threshold=0.80,
+            uncertainty_threshold=0.50
+        )
+        
+        print("\n" + "="*60)
+        print("Evaluation complete!")
+        print("Results saved to: outputs/evaluation/")
+        print("="*60)
     
     else:
         print(f"Unknown command: {command}")
