@@ -74,10 +74,11 @@ def main():
         print(f"  Models Agree: {result['ensemble']['agreement']}")
         print(f"  Average Confidence: {result['ensemble']['avg_confidence']:.2%}")
         
-        if result['should_isolate']:
-            print("\n⚠️  ISOLATION REQUIRED - Please inspect this chicken")
-        else:
+        # Display appropriate message based on classification
+        if result['classification'] == "Healthy" and not result['should_isolate']:
             print("\n✓ Clear - Chicken can remain with flock")
+        else:
+            print(f"\n⚠️  ISOLATION REQUIRED - {result['action']}")
     
     elif command == 'eval':
         print("Evaluating ensemble on test set...")

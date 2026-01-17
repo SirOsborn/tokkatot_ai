@@ -44,7 +44,7 @@ class ChickenDiseaseDetector:
         
         # Load model
         self.model = create_ensemble(num_classes=len(CLASS_NAMES))
-        checkpoint = torch.load(model_path, map_location=self.device)
+        checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         
         self.model.efficientnet.load_state_dict(checkpoint['efficientnet_state_dict'])
         self.model.densenet.load_state_dict(checkpoint['densenet_state_dict'])
@@ -140,12 +140,21 @@ class ChickenDiseaseDetector:
         if not return_details:
             return classification
         
+        # Determine action based on classification and isolation status
+        if should_isolate:
+            action = 'ISOLATE CHICKEN FOR INSPECTION'
+        elif classification == "Healthy":
+            action = 'Clear for flock'
+        else:
+            # Disease detected (Salmonella, Coccidiosis, New Castle Disease)
+            action = 'ISOLATE CHICKEN - Disease Detected'
+        
         # Detailed results
         return {
             'classification': classification,
             'risk_level': risk_level,
-            'should_isolate': bool(should_isolate),
-            'action': 'ISOLATE CHICKEN FOR INSPECTION' if should_isolate else 'Clear for flock',
+            'should_isolate': bool(should_isolate or classification != "Healthy"),  # Isolate if uncertain OR diseased
+            'action': action,
             'models': {
                 'efficientnet': {
                     'prediction': IDX_TO_CLASS[efficient_probs.argmax()],
