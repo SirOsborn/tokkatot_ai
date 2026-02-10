@@ -1,0 +1,65 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Documentation
+README.md
+*.md
+!MODEL_CARD*.md
+
+# Archive and data (training data not needed in container)
+archive/
+
+# Logs (will be generated fresh in container)
+outputs/logs/
+
+# Evaluation reports (not needed for inference)
+outputs/evaluation/
+
+# Development files
+setup_check.py
+check_gpu.py
+check_checkpoint.py
+main.py
+train.py
+evaluate.py
+
+# Package management
+setup.py
+setup.cfg
+tokkatot_ai.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests/
+test_*.py
+*_test.py
