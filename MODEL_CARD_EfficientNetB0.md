@@ -1,7 +1,7 @@
 # EfficientNetB0 - Chicken Disease Detection Model
 
-**Model Version:** v1.0.0  
-**Release Date:** January 16, 2026  
+**Model Version:** v1.1.0  
+**Release Date:** March 1, 2026  
 **© 2026 Tokkatot. All Rights Reserved.**
 
 ## 📊 Model Performance
