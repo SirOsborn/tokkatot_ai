@@ -1,0 +1,30 @@
+# Dockerfile for converting ONNX models to TFLite for Hailo
+# This requires Python 3.9 and specific legacy libraries to work with onnx-tf.
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    cmake \
+    libprotobuf-dev \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install specific legacy versions required for the conversion pipeline
+RUN pip install --no-cache-dir \
+    numpy==1.19.5 \
+    onnx==1.10.2 \
+    tensorflow==2.7.0 \
+    tensorflow-probability==0.15.0 \
+    onnx-tf==1.10.0 \
+    protobuf==3.20.3
+
+# Copy only necessary files for conversion
+COPY export_tflite.py .
+COPY outputs/onnx/ outputs/onnx/
+
+# Entry point runs the TFLite conversion script
+CMD ["python", "export_tflite.py"]

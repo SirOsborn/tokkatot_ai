@@ -137,10 +137,11 @@ This model achieves 98.05% recall, but for production deployment:
 - **VRAM:** 2GB+ for batch inference
 - **RAM:** 4GB+ free memory
 
-### Edge Deployment (Raspberry Pi)
-- Compatible with Raspberry Pi 4 (4GB+ RAM)
-- Inference time: ~2-5 seconds per image on CPU
-- Consider model quantization for faster inference
+### Edge Deployment (Raspberry Pi + Hailo AI HAT+)
+- TFLite model available: `outputs/tflite/EfficientNetB0_best.tflite`
+- Optimized for Hailo AI accelerator (compile `.tflite` → `.hef` on the Pi)
+- Used as the 24/7 edge screening model in the Hybrid Cloud Ensemble architecture
+- See [REALTIME_MONITORING.md](REALTIME_MONITORING.md) for deployment guide
 
 ## 📄 License
 
@@ -156,6 +157,11 @@ This model is proprietary and part of Tokkatot Smart Chicken Farming Solutions. 
 - AI Engineer: sunhenglong@outlook.com
 
 ## 📝 Changelog
+
+### v1.1.0 (2026-03-01)
+- Converted to TFLite format for edge deployment (`EfficientNetB0_best.tflite`)
+- Added ONNX export support via `export_models.py`
+- Integrated into Hybrid Cloud Ensemble architecture (edge screening role)
 
 ### v1.0.0 (2026-01-16)
 - Initial release

@@ -20,3 +20,6 @@ models/
 checkpoints/
 logs/
 outputs/
+
+# Pre-trained model weights (auto-downloaded, not ours)
+yolov8n.pt

@@ -9,6 +9,11 @@
 
 Tokkatot AI is a safety-first ensemble machine learning system designed to detect chicken diseases through fecal matter analysis. The system prioritizes **100% recall** to ensure no diseased chickens are falsely classified as healthy, using a parallel safety vote mechanism with two complementary deep learning models.
 
+The system is designed for **24/7 real-time monitoring** of manure conveyor belts using a **Hybrid Cloud Ensemble** architecture:
+- **Edge (Raspberry Pi + Hailo AI HAT+):** EfficientNetB0 performs continuous high-speed screening.
+- **Cloud (vCPU Server):** Full ensemble (EfficientNetB0 + DenseNet121 + Safety Vote) verifies flagged anomalies for zero false positives.
+- **Alerts:** Confirmed disease detections are pushed to the **Tokkatot Web App Dashboard** on farmer devices.
+
 This proprietary system is developed exclusively for Tokkatot's integrated smart farming ecosystem and is protected under intellectual property rights.
 
 ## 🏗️ Architecture
@@ -169,26 +174,35 @@ python setup_check.py
 
 ```
 tokkatot_ai/
-├── main.py              # Entry point
+├── main.py              # Entry point (train, test, eval)
 ├── train.py             # Training script with recall-focused loss
 ├── inference.py         # Ensemble inference with safety logic
 ├── models.py            # EfficientNetB0 & DenseNet121 architectures
 ├── data_utils.py        # Data loading and preprocessing
+├── evaluate.py          # Model evaluation on test set
+├── export_models.py     # PyTorch → ONNX export script
+├── export_tflite.py     # ONNX → TFLite conversion (runs in Docker)
+├── app.py               # FastAPI cloud inference API
+├── Dockerfile           # Cloud deployment container (CPU)
+├── Dockerfile.converter # TFLite conversion container (Python 3.9)
+├── docker-compose.yml   # Docker orchestration
 ├── pyproject.toml       # Dependencies
+├── REALTIME_MONITORING.md # Edge deployment guide
 ├── README.md            # This file
 ├── archive/
 │   └── data/
 │       ├── train/       # Training images
-│       │   ├── Coccidiosis/
-│       │   ├── Healthy/
-│       │   ├── New Castle Disease/
-│       │   └── Salmonella/
 │       ├── val/         # Validation images
 │       └── test/        # Test images
 └── outputs/
-    ├── checkpoints/     # Saved model weights
-    ├── logs/            # Tensorboard logs
-    └── ensemble_model.pth  # Final ensemble model
+    ├── checkpoints/     # Individual model weights (.pth)
+    ├── ensemble_model.pth  # Final ensemble model (99% accuracy)
+    ├── onnx/            # ONNX intermediate models
+    ├── tflite/          # Edge-ready TFLite models
+    │   ├── EfficientNetB0_best.tflite
+    │   └── yolov8n.tflite
+    ├── logs/            # TensorBoard logs
+    └── evaluation/      # Confusion matrices & reports
 ```
 
 ## 🎓 Training
@@ -357,17 +371,19 @@ IMG_SIZE = 224            # Input image size
 2. **Early Detection**: Identify sick chickens before symptoms spread
 3. **Quarantine Protocol**: Automatic isolation alerts for farm workers
 
-### Edge Deployment (Raspberry Pi)
+### Edge Deployment (Raspberry Pi + Hailo AI HAT+)
 
-The EfficientNetB0 model can run independently on resource-constrained devices:
+The system supports 24/7 real-time monitoring via a Hybrid Cloud architecture:
 
-```python
-# Use only EfficientNet for edge deployment
-from models import EfficientNetB0Classifier
+1. **Edge Screening:** EfficientNetB0 (`.tflite` → `.hef`) runs on the Raspberry Pi for fast detection.
+2. **Cloud Verification:** Flagged images are sent to the cloud where the full ensemble confirms the diagnosis.
+3. **Farmer Alerts:** Confirmed diseases trigger notifications on the Tokkatot Web App Dashboard.
 
-model = EfficientNetB0Classifier(num_classes=4)
-model.load_state_dict(torch.load('outputs/checkpoints/EfficientNetB0_best.pth')['model_state_dict'])
-```
+**Edge-ready models are available in `outputs/tflite/`:**
+- `EfficientNetB0_best.tflite` — Disease classification
+- `yolov8n.tflite` — Feces detection on conveyor belt
+
+See [REALTIME_MONITORING.md](REALTIME_MONITORING.md) for full deployment instructions.
 
 
 ## 📄 License
