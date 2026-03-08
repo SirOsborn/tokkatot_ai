@@ -16,7 +16,6 @@ datasets/
 artifacts/
 archives/
 archive/
-models/
 checkpoints/
 logs/
 outputs/

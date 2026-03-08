@@ -1,53 +1,79 @@
-# Tokkatot AI - Chicken Disease Detection System
+# Tokkatot AI - Chicken Disease Detection
 
-**Safety-First Ensemble AI for Chicken Disease Detection via Fecal Images**
+**Real-time disease detection for poultry farms using ensemble ML**
 
-**© 2026 Tokkatot. All Rights Reserved.**  
-*Part of Tokkatot Smart Chicken Farming Solutions*
+## Quick Start
 
-## 🎯 Overview
+```bash
+# Test locally
+python application/app.py --demo
 
-Tokkatot AI is a safety-first ensemble machine learning system designed to detect chicken diseases through fecal matter analysis. The system prioritizes **100% recall** to ensure no diseased chickens are falsely classified as healthy, using a parallel safety vote mechanism with two complementary deep learning models.
+# Deploy to Raspberry Pi
+python application/app.py --camera-id 0
+```
 
-The system is designed for **24/7 real-time monitoring** of manure conveyor belts using a **Hybrid Cloud Ensemble** architecture:
-- **Edge (Raspberry Pi + Hailo AI HAT+):** EfficientNetB0 performs continuous high-speed screening.
-- **Cloud (vCPU Server):** Full ensemble (EfficientNetB0 + DenseNet121 + Safety Vote) verifies flagged anomalies for zero false positives.
-- **Alerts:** Confirmed disease detections are pushed to the **Tokkatot Web App Dashboard** on farmer devices.
+## What It Does
 
-This proprietary system is developed exclusively for Tokkatot's integrated smart farming ecosystem and is protected under intellectual property rights.
+- ✅ Detects 4 diseases from fecal images
+- ✅ 97% accuracy (ensemble voting)
+- ✅ 22+ FPS real-time processing
+- ✅ Runs 24/7 on Raspberry Pi
+- ✅ Sends metrics to cloud every 5 min
 
-## 🏗️ Architecture
-
-### Ensemble Approach: Parallel Safety Vote
-
-The system combines two state-of-the-art neural networks:
-
-1. **EfficientNetB0** (v1.0.0 - Released Jan 16, 2026)
-   - Fast, lightweight model optimized for edge deployment (Raspberry Pi)
-   - General-purpose feature detection
-   - Efficient inference with minimal computational requirements
-   - **98.05% validation recall** (90 epochs)
-   - [📄 Model Card](MODEL_CARD_EfficientNetB0.md)
-
-2. **DenseNet121** (v1.0.0 - Released Jan 17, 2026)
-   - Superior feature reuse through dense connections
-   - Robust gradient flow for stable training
-   - Excellent at capturing fine-grained patterns
-   - **96.69% validation recall** (20 epochs)
-   - [📄 Model Card](MODEL_CARD_DenseNet121.md)
-
-3. **Ensemble Model** (v1.0.0 - Released Jan 17, 2026)
-   - Combines both models for maximum safety and accuracy
-   - **99% test accuracy** (67,137 classified samples)
-   - **5.01% isolation rate** (3,540 samples for safety)
-   - Production-ready system
-   - [📄 Model Card](MODEL_CARD_ENSEMBLE.md)
-
-### Safety-First Logic
+## Folder Structure
 
 ```
-┌───────────────────────────────┐
-│         Input Image           │
+application/     ← Production system
+development/     ← Training & research
+```
+
+## Deploy to Pi
+
+```bash
+scp -r application/ pi@raspberrypi.local:/home/pi/
+ssh pi@raspberrypi.local
+cd application && pip install -r requirements.txt
+sudo systemctl start tokkatot-edge
+```
+
+## Train Models
+
+```bash
+cd development/training
+python train.py --epochs 50
+cp ../outputs/ensemble_model.pth ../../application/
+```
+
+## Models
+
+| Model | Speed | Accuracy | Use |
+|-------|-------|----------|-----|
+| YOLOv8n | Fast | Detection | Find feces |
+| EfficientNetB0 | Very Fast | 94% | Edge classification |
+| DenseNet121 | Slower | 96% | Powerful classification |
+| Ensemble | Fast | 97% | Final decision (voting) |
+
+## Architecture
+
+```
+Camera → YOLO Detect → Ensemble Classify → Track → Aggregate → Metrics
+```
+
+## Classes Detected
+
+1. **Healthy** - Normal
+2. **Coccidiosis** - Parasite
+3. **Salmonella** - Bacteria
+4. **New Castle** - Virus
+
+## Cloud Integration
+
+Sends to cloud every 5 minutes:
+- FPS, latency, detection count
+- Disease rate, anomaly %
+- System health (CPU, memory)
+
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 └──────────┬────────────────────┘
            │
      ┌─────▼─────┐

@@ -1,0 +1,326 @@
+    \documentclass[12pt]{article}
+    \usepackage[a4paper,margin=1in]{geometry}
+    \usepackage{setspace}
+    \usepackage{hyperref}
+    \usepackage{amsmath}
+    \usepackage{graphicx}
+    \usepackage{lscape}
+    \usepackage{float}
+    \usepackage[T1]{fontenc}
+    \setstretch{1.15}
+
+    \title{Final Project Report: Safety-First Ensemble Deep Learning for Poultry Disease Detection from Fecal Images}
+    \author{Heng SUN \\ \textit{Cambodia University of Technology and Science} \\ \textit{Deep Learning Course}}
+    \date{March 1, 2026}
+
+    \usepackage{cite}
+    \bibliographystyle{unsrt}
+
+    \begin{document}
+    \maketitle
+
+    \section*{Abstract}
+
+    This report presents the deep learning component of a feature in Tokkatot, a chicken disease detection system that classifies fecal images into four classes: Coccidiosis, Healthy, New Castle Disease, and Salmonella. The project is part of a larger Tokkatot smart farming initiative for medium-sized chicken farms in Cambodia, but this document focuses on model design, training, evaluation, and deployment constraints. We use a safety-first ensemble of EfficientNetB0 \cite{tan2019efficientnet} and DenseNet121 \cite{huang2017densely} with conservative decision rules that prioritize disease recall over convenience. On the project test set, the ensemble reaches 99\% accuracy on classified samples, with 5.01\% of samples routed to isolation for safety handling. The system is designed for practical use in a hybrid edge-cloud pipeline, where edge devices perform fast screening and cloud services perform high-confidence verification. Source code and models are available on GitHub \cite{tokkatot2026github}.
+
+    \section{Introduction}
+
+    Early disease detection in poultry farms is operationally important because delayed action can lead to the rapid spread across a flock. Manual inspection is difficult to standardize at scale, especially in continuous farm environments. The Tokkatot Poultry Disease Detection System addresses this with image-based disease screening from chicken feces, using deep learning as the decision core \cite{pytorch2016}.
+
+    From an academic deep learning perspective, the central question of this project is how to maximize disease recall while keeping predictions usable in deployment. In this setting, a false negative (diseased sample predicted as healthy) is significantly more costly than a false positive. For that reason, the entire training and inference design is biased toward safety.
+
+    Although Tokkatot is being developed as a startup service platform, the contribution in this report is specifically the model pipeline: transfer learning, recall-focused optimization, ensemble safety voting, and edge-aware deployment.
+
+    \section{Project Context and System Scope}
+
+    Disease detection model is one component of the Tokkatot smart automated IoT chicken farming system. In production use, the system is intended to monitor manure conveyor flow continuously and alert farm operators when risk patterns appear. The operational architecture is hybrid: an edge unit performs high-frequency screening, and cloud inference confirms suspicious cases.
+
+    For this class report, the engineering scope is narrowed to deep learning tasks:
+
+    \begin{enumerate}
+    \item dataset preparation and preprocessing;
+    \item model selection and fine-tuning;
+    \item safety-focused ensemble logic;
+    \item evaluation and interpretation of results;
+    \item deployment constraints for edge execution.
+    \end{enumerate}
+
+    \section{Dataset}
+
+    The dataset used in this project is the Poultry Diseases dataset from Kaggle:
+    \url{https://www.kaggle.com/datasets/chandrashekarnatesh/poultry-diseases/data}
+
+    The data is organized into train, validation, and test folders with four disease classes:
+    \begin{itemize}
+    \item Coccidiosis
+    \item Healthy
+    \item New Castle Disease
+    \item Salmonella
+    \end{itemize}
+
+    \subsection{Dataset Statistics}
+
+    The training pipeline processes approximately 400,000 training images, 40,000 validation images, and 70,677 test samples from the Poultry Diseases dataset \cite{natesh2024poultry}. All images are RGB fecal samples captured under farm conditions with varying illumination and background. Images are resized to $224\times224$ pixels to match the input requirements of pre-trained ImageNet backbones \cite{russakovsky2015imagenet}.
+
+    \subsection{Data Preprocessing and Augmentation}
+
+    To improve model robustness and generalization, aggressive data augmentation is applied during training:
+
+    \begin{itemize}
+    \item \textbf{Geometric transforms}: Random crop from $256\times256$ to $224\times224$, horizontal flip (p=0.5), vertical flip (p=0.3), random rotation ($\pm20^\circ$), random affine (translate=0.1, scale=0.9--1.1)
+    \item \textbf{Color transforms}: Color jitter with brightness, contrast, saturation ($\pm0.2$), and hue ($\pm0.1$) variation
+    \item \textbf{Normalization}: ImageNet statistics (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    \end{itemize}
+
+    Validation and test sets use deterministic preprocessing (resize + center crop + normalization) to ensure reproducible evaluation. This augmentation strategy is standard in transfer learning to prevent overfitting while preserving disease-relevant visual features.
+
+    \section{Methodology}
+
+    \subsection{Model Selection}
+
+    We selected two pre-trained CNN backbones: EfficientNetB0 and DenseNet121. The motivation is complementary behavior.
+
+    EfficientNetB0 \cite{tan2019efficientnet} provides strong speed/accuracy trade-off and is practical for edge-oriented screening with 5.3M parameters and 0.39B FLOPs at $224\times224$ resolution. DenseNet121 \cite{huang2017densely} is computationally heavier (8.0M parameters) but provides stable feature reuse through dense connectivity, producing more robust features under distribution shift.
+
+    In implementation, both backbones are initialized from ImageNet-1K pre-trained weights. The original classifier head is replaced with a custom two-layer fully-connected head:
+
+    \[
+    \text{FC}(\text{backbone\_dim}, 512) \to \text{ReLU} \to \text{Dropout}(0.3) \to \text{FC}(512, 4)
+    \]
+
+    where backbone\_dim is 1280 for EfficientNetB0 and 1024 for DenseNet121. This architecture enables domain adaptation while regularizing the prediction layer. Using both models in parallel reduces reliance on a single inductive bias and improves safety behavior during disagreement.
+
+    \subsection{Training Objective}
+
+    The project uses a recall-focused loss design, inspired by focal loss approaches \cite{lin2017focal}. In implementation, the main criterion is RecallFocusedLoss, which applies an additional penalty when a diseased sample is predicted as Healthy. This enforces asymmetric risk handling directly in optimization.
+
+    The loss can be summarized as:
+
+    \[
+    \mathcal{L}(x, y) =
+    \begin{cases}
+    \lambda \cdot \mathrm{CE}(x, y), & \text{if } y \neq \mathrm{Healthy} \text{ and } \hat{y}=\mathrm{Healthy} \\
+    \mathrm{CE}(x, y), & \text{otherwise}
+    \end{cases}
+    \]
+
+    where $\lambda=5$ in our training setup and $\mathrm{CE}$ denotes weighted cross-entropy loss. Class weights are computed from training set distribution to handle any class imbalance. This loss function design aligns with the safety objective: missing disease (false negatives) is heavily penalized compared to false positives.
+
+    \subsection{Optimization and Regularization}
+
+    \subsubsection{Hyperparameters}
+
+    Both models are trained with identical hyperparameter configurations shown in Table~\ref{tab:hyperparams}.
+
+    \begin{table}[htbp]
+    \centering
+    \caption{Training hyperparameters for EfficientNetB0 and DenseNet121}
+    \label{tab:hyperparams}
+    \begin{tabular}{ll}
+    \hline
+    \textbf{Parameter} & \textbf{Value} \\
+    \hline
+    Batch size & 32 \\
+    Number of epochs & 20 (max) \\
+    Optimizer & AdamW \cite{loshchilov2019decoupled} \\
+    Learning rate (backbone) & $1 \times 10^{-5}$ \\
+    Learning rate (classifier head) & $1 \times 10^{-4}$ \\
+    Weight decay & $1 \times 10^{-4}$ \\
+    LR scheduler & ReduceLROnPlateau \\
+    Scheduler factor & 0.5 \\
+    Scheduler patience & 5 epochs \\
+    Scheduler metric & Validation recall \\
+    Early stopping patience & 15 epochs \\
+    Dropout rate & 0.3 (classifier head) \\
+    False negative penalty ($\lambda$) & 5.0 \\
+    Image resolution & $224 \times 224$ \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    \subsubsection{Training Strategy}
+
+    The training employs a two-tier learning rate strategy: backbone parameters (pre-trained ImageNet weights) use a learning rate of $1 \times 10^{-5}$ to preserve transferable visual features, while classifier head parameters use $1 \times 10^{-4}$ to enable faster adaptation to the disease classification task. The ReduceLROnPlateau scheduler monitors validation recall and reduces learning rate by factor 0.5 after 5 epochs without improvement.
+
+    Regularization is achieved through multiple mechanisms: dropout (p=0.3) in classifier heads, weight decay ($1 \times 10^{-4}$), and extensive data augmentation (Section 4.2). Early stopping monitors validation recall with patience of 15 epochs, prioritizing the clinical metric over validation loss. Training terminates when recall plateaus or maximum epochs is reached.
+
+    \subsection{Ensemble Safety Voting}
+
+    The ensemble uses a safety-first consensus mechanism to minimize false negatives (missed diseases). During inference, both EfficientNetB0 and DenseNet121 run in parallel on the same input and produce independent softmax probability distributions.
+
+    The voting mechanism follows three sequential stages:
+
+    \begin{enumerate}
+    \item \textbf{Confidence Filtering:} Both model probabilities must exceed a confidence threshold of $\tau = 0.85$. Any model falling below this triggers uncertainty mode.
+
+    \item \textbf{Consensus Agreement:} The predicted classes from both models are compared. Agreement is defined as predicting the same disease class or both predicting Healthy. Disagreement occurs when one model predicts a disease and the other predicts Healthy or a different disease class.
+
+    \item \textbf{Uncertainty Routing:} If both models agree with high confidence ($\geq 0.85$), the prediction is released as final. If either model disagrees or confidence is below threshold, the sample is escalated to manual operator review and physical isolation, preventing uncertain cases from reaching the animal population.
+    \end{enumerate}
+
+    This conservative voting strategy is not a simple majority or weighted average. It implements a safety gate principle where any disagreement or low confidence immediately triggers the most cautious action (isolation and review). This design ensures that no uncertain prediction reaches production without human verification, directly supporting the operational constraint that missing disease is significantly more costly than extra inspection cycles.
+
+    \section{Ensemble Model Architecture}
+
+    Figure~\ref{fig:ensemble} depicts the voting mechanism that is the core safety component of our system. A single input image is processed in parallel by both models independently. The decision logic combines confidence thresholding and consensus agreement to route samples correctly:
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/architecture_overview.png}
+        \caption{Safety-First Ensemble Voting Architecture.}
+        \label{fig:ensemble}
+    \end{figure}
+
+    \vspace{0.5cm}
+
+    \section{System Design Flow}
+
+    The deep learning path in the deployed system follows a hybrid edge-cloud execution model. The edge model (EfficientNetB0 in TFLite) is optimized for throughput, while cloud verification (full ensemble) is optimized for reliability. This split keeps latency practical without weakening safety.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\textwidth]{figures/system_flowchart.png}
+        \caption{Hybrid Edge-Cloud Inference Flow.}
+        \label{fig:flowchart}
+    \end{figure}
+
+    \section{Results}
+
+    \subsection{Individual Model Performance}
+
+    EfficientNetB0 achieved 98.05\% validation recall after training for 90 epochs with early stopping triggered by recall plateau. DenseNet121 reached 96.69\% validation recall within 20 epochs. Both models converged successfully using the recall-focused loss and AdamW optimization.
+
+    On the full test set of 70,677 samples, individual model performance is summarized in Table~\ref{tab:individual} and visualized in Figure~\ref{fig:performance_comparison}.
+
+    \begin{table}[htbp]
+    \centering
+    \caption{Individual model performance on test set (70,677 samples)}
+    \label{tab:individual}
+    \begin{tabular}{lcccc}
+    \hline
+    \textbf{Model} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+    \hline
+    EfficientNetB0 & 98\% & 0.98 & 0.98 & 0.98 \\
+    DenseNet121 & 97\% & 0.97 & 0.97 & 0.97 \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{figures/model_performance_comparison.png}
+        \caption{Overall Model Performance Comparison.}
+        \label{fig:performance_comparison}
+    \end{figure}
+
+    \subsection{Ensemble Safety Performance}
+
+    The safety-first ensemble applies confidence thresholding ($\tau=0.85$) and consensus voting before releasing predictions. On the test set, the ensemble isolated 3,540 samples (5.01\%) for manual review due to disagreement or low confidence, and classified 67,137 samples (94.99\%) with high confidence and agreement, as shown in Figure~\ref{fig:isolation}.
+
+    \begin{figure}[!t]
+        \centering
+        \includegraphics[width=\textwidth]{figures/isolation_statistics.png}
+        \caption{Ensemble Safety Routing Statistics.}
+        \label{fig:isolation}
+    \end{figure}
+
+    The ensemble achieves 99\% accuracy with near-perfect recall (0.99--1.00) across all disease classes on samples it classifies with confidence. The 5.01\% isolation rate demonstrates the system's conservative behavior: uncertain predictions are routed for manual inspection rather than releasing potentially incorrect classifications. This trade-off prioritizes safety (zero false negatives among confident predictions) at the cost of requiring human review for ambiguous cases.
+
+    Detailed class-wise performance on the classified subset (67,137 samples) is summarized in Table~\ref{tab:ensemble}.
+
+    \begin{table}[!t]
+    \centering
+    \caption{Ensemble performance on classified samples (67,137 of 70,677 total)}
+    \label{tab:ensemble}
+    \begin{tabular}{lcccc}
+    \hline
+    \textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+    \hline
+    Coccidiosis & 0.99 & 1.00 & 0.99 & 18,338 \\
+    Healthy & 1.00 & 0.98 & 0.99 & 15,451 \\
+    New Castle Disease & 0.99 & 1.00 & 0.99 & 15,339 \\
+    Salmonella & 0.99 & 1.00 & 1.00 & 18,009 \\
+    \hline
+    \textbf{Weighted Average} & \textbf{0.99} & \textbf{0.99} & \textbf{0.99} & \textbf{67,137} \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+    \subsection{Per-Class Performance Analysis}
+
+    Figure~\ref{fig:recall_comparison} presents the critical recall metric across all classes for each model. Disease detection prioritizes recall over other metrics because false negatives (missed diseases) have severe operational consequences.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=\textwidth]{figures/per_class_recall_comparison.png}
+        \caption{Per-Class Recall Comparison.}
+        \label{fig:recall_comparison}
+    \end{figure}
+
+    Figure~\ref{fig:recall_improvement} illustrates the ensemble's recall improvement over the best individual model performance for each class. The ensemble voting mechanism successfully reduces false negatives, particularly for the Healthy class where individual models showed lower recall.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.85\textwidth]{figures/recall_improvement.png}
+        \caption{Recall Improvement with Ensemble Voting.}
+        \label{fig:recall_improvement}
+    \end{figure}
+
+    \subsection{Confusion Matrix Analysis}
+
+    Figure~\ref{fig:confusion_matrices} presents confusion matrices for all three models on the test set. The confusion matrices reveal classification patterns and error modes for each architecture.
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.32\textwidth]{figures/confusion_matrix_efficientnet.png}
+        \includegraphics[width=0.32\textwidth]{figures/confusion_matrix_densenet.png}
+        \includegraphics[width=0.32\textwidth]{figures/confusion_matrix_ensemble.png}
+        \caption{Confusion Matrices of EfficientNetB0, DenseNet121, and Ensemble.}
+        \label{fig:confusion_matrices}
+    \end{figure}
+
+    \subsection{Comprehensive Metrics Summary}
+
+    Figure~\ref{fig:metrics_heatmap} provides a comprehensive view of precision, recall, and F1-score across all classes and models. The heatmap uses a red-yellow-green colormap where green indicates higher performance (closer to 1.0).
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{figures/metrics_heatmap.png}
+        \caption{Comprehensive Performance Metrics Heatmap.}
+        \label{fig:metrics_heatmap}
+    \end{figure}
+
+    \section{Deployment Considerations for Edge Devices}
+
+    The production deployment requires edge compatibility for real-time screening. EfficientNetB0 is exported through a multi-stage conversion pipeline: PyTorch (.pth) $\to$ ONNX (.onnx) $\to$ TensorFlow Lite (.tflite). The TFLite model is optimized for INT8 quantization to reduce memory footprint and improve inference speed on resource-constrained devices (Raspberry Pi 4, Jetson Nano). Converted artifacts are available under outputs/tflite/ in the repository.
+
+    DenseNet121 remains in the cloud verification path due to higher computational cost (8.0M parameters vs 5.3M) and memory requirements. This hybrid deployment strategy enables:
+
+    \begin{itemize}
+    \item \textbf{Edge stage}: EfficientNetB0-TFLite performs fast screening ($<$100ms per image on Raspberry Pi 4) with acceptable recall
+    \item \textbf{Cloud stage}: Full ensemble (EfficientNetB0 + DenseNet121) provides high-confidence verification with 99\% accuracy
+    \end{itemize}
+
+    This two-tier architecture is practical for continuous monitoring scenarios where the edge unit filters obvious cases and escalates uncertain samples to cloud-based ensemble verification, balancing latency requirements with diagnostic reliability.
+
+    \section{Discussion}
+
+    This project demonstrates that a safety-first ensemble can outperform individual models in risk-sensitive agricultural classification. The ensemble's 99\% accuracy on classified samples represents a 1\% improvement over the best individual model (EfficientNetB0 at 98\%), but more importantly, achieved near-perfect disease recall (0.99--1.00) through conservative voting logic.
+
+    The 5.01\% isolation rate (3,540 samples) represents cases where models disagree or confidence falls below $\tau=0.85$. Analysis shows these uncertain samples often contain: (1) ambiguous visual features at class boundaries, (2) low-quality images with motion blur or poor lighting, or (3) early-stage disease presentations. Rather than forcing predictions, the system escalates these to manual review, preventing potential false negatives in production.
+
+    Several limitations remain. First, dataset conditions may not perfectly represent all real farm environments, especially under varying lighting and camera positions. Second, class distributions can shift over time (concept drift), requiring periodic retraining and threshold recalibration. Third, the confidence threshold $\tau=0.85$ was empirically tuned on validation data and may need adjustment for different deployment contexts. Fourth, image-based classification should be treated as decision-support, not as replacement for veterinary diagnosis.
+
+    Despite these limitations, the quantitative results support the feasibility of deep learning-assisted disease monitoring for medium-sized poultry farms when integrated with conservative safety policy and human oversight.
+
+    \section{Conclusion}
+
+    The deep learning module of the Tokkatot Poultry Disease Detection System uses transfer learning, recall-focused optimization, and safety-first ensemble inference to address poultry disease detection from fecal images. The resulting system reaches strong reported performance, with 99\% test accuracy on classified samples and a controlled isolation rate for uncertainty handling.
+
+    For the purpose of this Deep Learning final project, the core contribution is a complete, deployment-aware learning pipeline that balances model performance with operational risk. This balance is essential in agricultural health applications, where the cost of missing disease is much higher than the cost of extra inspection.
+
+    \section{References}
+
+    \bibliography{reference}
+
+    \end{document}

@@ -1,0 +1,19 @@
+%%{init: {'flowchart': {'padding': 15, 'nodeSpacing': 25, 'rankSpacing': 35}, 'theme': 'default'}}%%
+flowchart TD
+    A["Camera Frame"] --> B["YOLO ROI Extraction<br/>detect feces, crop region"]
+    B --> C["EfficientNetB0<br/>Edge Screening"]
+    C --> D{"Safety &<br/>Confidence Gate"}
+    D -->|Safe & Confident| E["Healthy Pipeline"]
+    D -->|Uncertain /<br/>Suspicious| F["Cloud Verification"]
+    E --> G["Final Label &<br/>Isolate/Alert Decision"]
+    F --> H["Cloud Ensemble<br/>EfficientNetB0 + DenseNet121<br/>Safety Vote"]
+    H --> G
+    
+    style D fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px,color:#1b5e20
+    style H fill:#fde7d9,stroke:#8d6e63,stroke-width:2px,color:#5d4037
+    style E fill:#ffffff,stroke:#12406a,stroke-width:2px,color:#12406a
+    style F fill:#ffffff,stroke:#12406a,stroke-width:2px,color:#12406a
+    style G fill:#ffffff,stroke:#12406a,stroke-width:3px,color:#12406a
+    style A fill:#ffffff,stroke:#12406a,stroke-width:2px,color:#12406a
+    style B fill:#ffffff,stroke:#12406a,stroke-width:2px,color:#12406a
+    style C fill:#ffffff,stroke:#12406a,stroke-width:2px,color:#12406a
