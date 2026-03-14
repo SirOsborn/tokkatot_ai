@@ -1,0 +1,12 @@
+# Tokkatot YOLO Dataset Config
+# 2 classes: detect feces and classify as healthy or suspicious
+
+path: ../archive/data
+train: images/train
+val: images/val
+test: images/test
+
+nc: 2
+names:
+  0: healthy_feces
+  1: suspicious_feces

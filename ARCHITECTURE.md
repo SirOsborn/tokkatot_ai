@@ -22,16 +22,11 @@ Output (stream/save/display)
 
 ## Component Details
 
-### Frontend (Optional)
-- **streaming/**: Live video feed with overlays
-- **upload/**: Single image analysis
-- **components/**: Shared UI elements
-
-### Backend Required
+### Backend (Core System)
 - **core/**: ML pipeline (550 lines, immutable)
 - **services/**: Business logic (alerts, metrics, logging)
 - **utils/**: Config, transforms, logging
-- **api/**: REST endpoints (optional)
+- **api/**: REST endpoints for Tokkatot Web App integration
 
 ### Deployment
 - **Docker/**: Container config

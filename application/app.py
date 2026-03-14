@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-TOKKATOT Edge Application - Entry Point
-Single command to run edge monitoring, demo, or video processing.
+TOKKATOT AI Cloud Application - Entry Point
+Single command to run live webcam, demo, or video processing.
 
 Quick start:
   python app.py              # Live webcam
@@ -36,10 +36,12 @@ EXAMPLES:
     parser.add_argument("--image", type=str, help="Image file for demo mode analysis")
     parser.add_argument("--video", type=str, help="Video file to process")
     parser.add_argument("--camera-id", type=int, default=0, help="Webcam ID")
-    parser.add_argument("--ensemble-model", type=str, default="development/outputs/ensemble_model.pth")
-    parser.add_argument("--yolo-model", type=str, default="application/yolov8n.pt")
+    parser.add_argument("--ensemble-model", type=str, default="application/inferences/ensemble_model.pth")
+    parser.add_argument("--yolo-model", type=str, default="application/inferences/yolov8_custom.pt")
     parser.add_argument("--conf-threshold", type=float, default=0.5, help="YOLO confidence")
     parser.add_argument("--anomaly-threshold", type=float, default=10.0, help="Alert threshold (percent)")
+    parser.add_argument("--cloud-api", type=str, default="http://localhost:8000/api/v1", help="Cloud API URL")
+    parser.add_argument("--no-cloud", action='store_true', help="Disable cloud verification")
     parser.add_argument("--device", default='auto', choices=['auto', 'cuda', 'cpu'])
     
     return parser
@@ -68,6 +70,7 @@ def main():
             yolo_model_path=args.yolo_model,
             conf_threshold=args.conf_threshold,
             anomaly_threshold_pct=args.anomaly_threshold,
+            cloud_api_url=None if args.no_cloud else args.cloud_api,
             device=args.device
         )
         

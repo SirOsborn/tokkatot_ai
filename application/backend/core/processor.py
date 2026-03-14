@@ -8,21 +8,23 @@ import numpy as np
 from PIL import Image
 from typing import Dict, Tuple, List
 
-try:
-    from models.inference import ChickenDiseaseDetector
-except ImportError:
-    from ..models.inference import ChickenDiseaseDetector
+# Detector is used only if ensemble is needed (optional on edge now)
+# Class naming from YOLO perspective:
+# 0 = healthy_feces
+# 1 = suspicious_feces
 
 
 class FrameProcessor:
     """Process video frames: detect → classify → track → aggregate."""
     
-    def __init__(self, detector, yolo, tracker, aggregator, conf_threshold=0.5):
+    def __init__(self, detector, yolo, tracker, aggregator, conf_threshold=0.5, anomaly_threshold=10.0, cloud_service=None):
         self.detector = detector
         self.yolo = yolo
         self.tracker = tracker
         self.aggregator = aggregator
         self.conf_threshold = conf_threshold
+        self.anomaly_threshold = anomaly_threshold
+        self.cloud_service = cloud_service
         
         self.stats = {
             'total_frames': 0,
@@ -57,32 +59,48 @@ class FrameProcessor:
                 if x2 - x1 < 20 or y2 - y1 < 20:
                     continue
                 
+                # Process based on YOLO class ID (from the custom trained model)
+                # Class 0 = Healthy, Class 1 = Suspicious
+                yolo_cls_id = int(box.cls[0].item())
+                
+                if yolo_cls_id == 0:
+                    pred_class = 'healthy'
+                else:
+                    # Suspicious! Trigger Cloud Verification
+                    pred_class = 'suspicious'
+                    
+                    if self.cloud_service:
+                        crop = frame[y1:y2, x1:x2]
+                        if crop.size > 0:
+                            # Run cloud ensemble verification
+                            result = self.cloud_service.verify_sample(crop)
+                            
+                            # If cloud is 100% sure it's healthy, we override
+                            if result.get('is_healthy', False) or result.get('classification') == 'Healthy':
+                                pred_class = 'healthy'
+                            else:
+                                # Confirmed disease or unsure
+                                pred_class = 'disease'
+                                # Update aggregator (only for confirmed diseases)
+                                self.aggregator.add_detection(is_disease=True)
+                        else:
+                            pred_class = 'uncertain'
+                    else:
+                        pred_class = 'suspicious' # Fallback if no cloud service
+                
                 detection_boxes.append((x1, y1, x2, y2))
                 
-                # Classify with ensemble
-                try:
-                    crop = frame[y1:y2, x1:x2]
-                    if crop.size == 0:
-                        pred_class = 'uncertain'
-                    else:
-                        pil_image = Image.fromarray(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
-                        prediction = self.detector.predict(pil_image)
-                        pred_class = prediction['class']
-                        
-                        # Update aggregator
-                        is_disease = (pred_class == 'disease')
-                        self.aggregator.add_detection(is_disease)
-                        
-                        # Update stats
-                        self.stats['total_detections'] += 1
-                        if pred_class == 'disease':
-                            self.stats['disease_detections'] += 1
-                        elif pred_class == 'healthy':
-                            self.stats['healthy_detections'] += 1
-                        else:
-                            self.stats['uncertain_detections'] += 1
-                except Exception:
-                    pred_class = 'uncertain'
+                # Update aggregator for healthy results to track total samples
+                if pred_class == 'healthy':
+                    self.aggregator.add_detection(is_disease=False)
+                
+                # Update stats
+                self.stats['total_detections'] += 1
+                if pred_class == 'disease':
+                    self.stats['disease_detections'] += 1
+                elif pred_class == 'healthy':
+                    self.stats['healthy_detections'] += 1
+                else:
                     self.stats['uncertain_detections'] += 1
                 
                 classes.append(pred_class)
@@ -93,7 +111,7 @@ class FrameProcessor:
         
         # Get anomaly info
         disease_count, total_count, anomaly_pct = self.aggregator.get_anomaly_rate()
-        should_alert = self.aggregator.should_alert(anomaly_pct)
+        should_alert = self.aggregator.should_alert(self.anomaly_threshold)
         
         frame_stats = {
             'disease_count': disease_count,

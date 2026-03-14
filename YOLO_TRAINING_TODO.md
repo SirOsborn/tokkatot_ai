@@ -1,70 +1,51 @@
-# YOLO Training - TODO
+# YOLO Training
 
-## Issue
-Demo mode works but YOLO detects 0 fecal samples because the generic `yolov8n.pt` model isn't trained on your dataset.
+## Approach
+Train YOLOv8n with **2 classes** for edge-only detection and classification:
 
-**Current flow:**
-1. ✅ User uploads image
-2. ❌ YOLO detects 0 samples (not trained on fecals)
-3. ❌ Ensemble has nothing to classify
-4. ❌ Result: 0 detections, 0 classifications
+| Class ID | Name | Action |
+|----------|------|--------|
+| 0 | `healthy_feces` | Continue monitoring |
+| 1 | `suspicious_feces` | Send to cloud for ensemble verification |
 
-## Solution
-Train a custom YOLO model on the chicken fecal dataset.
+This eliminates the need for EfficientNetB0 on edge — **one model does detection + classification**.
 
-**Dataset available:**
-- `development/archive/data/train/` - Training images (Coccidiosis, Healthy, New Castle Disease, Salmonella)
-- `development/archive/data/test/` - Test images
-- `development/archive/data/val/` - Validation images
+## Dataset
+Auto-generated YOLO labels from existing classification folders:
+- `Healthy/` → class 0 (healthy_feces)
+- `Coccidiosis/` + `Salmonella/` + `New Castle Disease/` → class 1 (suspicious_feces)
 
-## Implementation Steps
+Bounding boxes cover the full image with 5% margin (each image = single sample).
 
-### 1. Create YOLO dataset config
-File: `development/training/data.yaml`
-```yaml
-path: ../archive/data
-train: train
-val: val
-test: test
-nc: 1  # 1 class: "fecal_sample"
-names: ['fecal_sample']
-```
+## Steps
 
-### 2. Generate YOLO labels
-Convert image folders to YOLO format:
-- Need bounding box annotations for fecal samples in each image
-- Format: `<class_id> <x_center> <y_center> <width> <height>` (normalized 0-1)
-
-### 3. Train YOLO
+### 1. Generate labels
 ```bash
 cd development/training
+python generate_yolo_labels.py --data-dir ../archive/data
+```
+
+### 2. Train YOLO
+```bash
 python train_yolo.py --epochs 50 --device cuda --batch 16
 ```
 
-### 4. Deploy
+### 3. Deploy to application
 ```bash
-cp development/runs/detect/train/weights/best.pt application/yolov8_custom.pt
+cp runs/detect/train/weights/best.pt ../../application/yolov8_custom.pt
 ```
 
-### 5. Test
+### 4. Test
 ```bash
-python application/app.py --demo --image <image_path> --yolo-model application/yolov8_custom.pt
+python ../../application/app.py --demo --image <image_path> --yolo-model ../../application/yolov8_custom.pt
 ```
 
-## Files Created
-- [ ] `development/training/train_yolo.py` - Training script
-- [ ] `development/training/data.yaml` - Dataset config
-- [ ] `development/archive/labels/` - YOLO format annotations
-
-## Expected Result
-After training and deployment:
-```
-✓ Image loaded successfully
-Analyzing image...
-✓ YOLO detects fecal samples (boxes)
-✓ Ensemble classifies each detection (disease type)
-✓ Results: "X samples detected, Y diseased"
-```
+## Files
+- [x] `development/training/generate_yolo_labels.py` - Auto-annotation script
+- [x] `development/training/data.yaml` - Dataset config (2 classes)
+- [x] `development/training/train_yolo.py` - Training script
+- [ ] `development/archive/data/train_labels/` - Generated labels (run step 1)
+- [ ] `application/yolov8_custom.pt` - Trained model (run steps 2-3)
 
 ## Status
-⏳ Pending - Mark as done after training completes
+⏳ Scripts ready — run step 1 to generate labels, then step 2 to train.

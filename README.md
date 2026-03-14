@@ -2,436 +2,161 @@
 
 **Real-time disease detection for poultry farms using ensemble ML**
 
+**Backend AI Engine for Tokkatot Smart Chicken Farming**
+
+**© 2026 Tokkatot. All Rights Reserved.**
+
 ## Quick Start
 
 ```bash
-# Test locally
+# Test locally (demo mode)
 python application/app.py --demo
 
-# Deploy to Raspberry Pi
+# Run with webcam
 python application/app.py --camera-id 0
+
+# Deploy to Raspberry Pi
+scp -r application/ pi@raspberrypi.local:/home/pi/
 ```
 
 ## What It Does
 
-- ✅ Detects 4 diseases from fecal images
-- ✅ 97% accuracy (ensemble voting)
-- ✅ 22+ FPS real-time processing
-- ✅ Runs 24/7 on Raspberry Pi
-- ✅ Sends metrics to cloud every 5 min
+- ✅ Detects 4 diseases from chicken fecal images (Coccidiosis, Salmonella, New Castle, Healthy)
+- ✅ 99% accuracy via ensemble safety voting (EfficientNetB0 + DenseNet121)
+- ✅ 22+ FPS real-time processing with on-screen alerts
+- ✅ Runs 24/7 on Raspberry Pi as a systemd service
+- ✅ Sends health metrics to Tokkatot Cloud every 5 minutes
 
-## Folder Structure
+## Architecture
 
 ```
-application/     ← Production system
-development/     ← Training & research
+Camera → YOLO Detect → Ensemble Classify → Track → Aggregate → Alert
 ```
 
-## Deploy to Pi
+### Hybrid Cloud Ensemble
+| Layer | Model | Role |
+|-------|-------|------|
+| **Edge** (Raspberry Pi) | YOLOv8n + EfficientNetB0 | 24/7 high-speed screening |
+| **Cloud** (vCPU Server) | Full Ensemble (EfficientNetB0 + DenseNet121 + Safety Vote) | Zero false-positive verification |
+
+→ Confirmed diseases are pushed to the **Tokkatot Web App Dashboard**.
+
+### Safety-First Decision Rules
+A chicken is **isolated** if ANY of these trigger:
+1. Either model's max confidence < 50% → **ISOLATE** (uncertain)
+2. Either model's healthy confidence < 80% → **ISOLATE** (potential disease)
+3. Models disagree and either predicts disease → **ISOLATE**
+
+## Project Structure
+
+```
+tokkatot_ai/
+│
+├── application/          ← DEPLOY THIS (backend engine)
+│   ├── app.py            (main entry point)
+│   ├── backend/core/     (ML pipeline: detect → classify → track → alert)
+│   ├── backend/services/ (inference wrapper, metrics, alerts)
+│   └── backend/api/      (REST API for Tokkatot Web App integration)
+│
+├── development/          ← TRAINING ONLY (not deployed)
+│   ├── training/         (train.py, export scripts)
+│   ├── models/           (EfficientNetB0, DenseNet121, Ensemble architectures)
+│   ├── data_prep/        (dataset utilities)
+│   ├── evaluation/       (test metrics & plots)
+│   ├── outputs/          (trained models, TFLite, ONNX)
+│   └── docs/             (model cards, guides, research paper)
+│
+├── STRUCTURE.md          Quick structure reference
+├── ARCHITECTURE.md       Data flow & component details
+├── DEPLOYMENT_GUIDE.md   Raspberry Pi & cloud deployment
+└── YOLO_TRAINING_TODO.md Custom YOLO training roadmap
+```
+
+See [STRUCTURE.md](STRUCTURE.md) for detailed module breakdown.
+
+## Models
+
+| Model | Accuracy | Recall | Use |
+|-------|----------|--------|-----|
+| **Ensemble** | **99%** | **99%** | Final decision (safety voting) |
+| EfficientNetB0 | 98.05% | 98.05% | Edge classification (fast) |
+| DenseNet121 | 96.69% | 96.69% | Deep classification (powerful) |
+| YOLOv8n | — | — | Feces detection on conveyor belt |
+
+**Test Results (70,677 samples):**
+- Classified: 67,137 (94.99%) at 99% accuracy
+- Isolated: 3,540 (5.01%) for safety verification
+- Per-class recall: Coccidiosis 100%, Healthy 98%, Newcastle 100%, Salmonella 100%
+
+### Model Documentation
+- [EfficientNetB0 Model Card](development/docs/reports/MODEL_CARD_EfficientNetB0.md)
+- [DenseNet121 Model Card](development/docs/reports/MODEL_CARD_DenseNet121.md)
+- [Ensemble Model Card](development/docs/reports/MODEL_CARD_ENSEMBLE.md)
+
+## Deploy to Raspberry Pi
 
 ```bash
-scp -r application/ pi@raspberrypi.local:/home/pi/
+# 1. Copy application to Pi
+scp -r application/ pi@raspberrypi.local:/home/pi/tokkatot_ai/
+
+# 2. Install & start
 ssh pi@raspberrypi.local
-cd application && pip install -r requirements.txt
-sudo systemctl start tokkatot-edge
+cd tokkatot_ai/application && pip install -r requirements.txt
+sudo systemctl enable tokkatot-edge && sudo systemctl start tokkatot-edge
+
+# 3. Monitor
+sudo journalctl -u tokkatot-edge -f
 ```
+
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for full instructions.
 
 ## Train Models
 
 ```bash
 cd development/training
-python train.py --epochs 50
+python train.py --epochs 50 --device cuda
+python evaluate.py
 cp ../outputs/ensemble_model.pth ../../application/
 ```
 
-## Models
-
-| Model | Speed | Accuracy | Use |
-|-------|-------|----------|-----|
-| YOLOv8n | Fast | Detection | Find feces |
-| EfficientNetB0 | Very Fast | 94% | Edge classification |
-| DenseNet121 | Slower | 96% | Powerful classification |
-| Ensemble | Fast | 97% | Final decision (voting) |
-
-## Architecture
-
-```
-Camera → YOLO Detect → Ensemble Classify → Track → Aggregate → Metrics
-```
-
-## Classes Detected
-
-1. **Healthy** - Normal
-2. **Coccidiosis** - Parasite
-3. **Salmonella** - Bacteria
-4. **New Castle** - Virus
+See [development/README.md](development/README.md) for full training pipeline.
 
 ## Cloud Integration
 
-Sends to cloud every 5 minutes:
+Every 5 minutes the edge device sends metrics to the Tokkatot Cloud:
 - FPS, latency, detection count
-- Disease rate, anomaly %
-- System health (CPU, memory)
-
-See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
-└──────────┬────────────────────┘
-           │
-     ┌─────▼─────┐
-     │   YOLO    │ (Optional ROI Extraction)
-     │  (Feces)  │
-     └─────┬─────┘
-           │
-    ┌──────┴───────┐
-    │              │
-┌───▼─────┐    ┌───▼────┐
-│Efficient│    │DenseNet│
-│ NetB0   │    │  121   │
-└───┬─────┘    └───┬────┘
-    │              │
-    └──────┬───────┘
-           │
-    ┌──────▼──────┐
-    │Safety Vote: │
-    │ If EITHER   │
-    │ model not   │
-    │ confident   │
-    │ → ISOLATE   │
-    └──────┬──────┘
-           │
-    ┌──────▼───────┐
-    │   Decision   │
-    └──────────────┘
-```
-
-### Decision Rules
-
-The system isolates chickens if **ANY** of the following conditions are met:
-
-1. **Uncertainty Check**: Either model's maximum confidence < 50% → **ISOLATE** (unknown/out-of-distribution)
-2. **Safety Vote**: Either model's healthy confidence < 80% → **ISOLATE** (potential disease)
-3. **Disagreement**: Models predict different classes and either predicts disease → **ISOLATE**
-
-## 🦠 Target Classes
-
-| Class | Type | Description |
-|-------|------|-------------|
-| **Healthy** | Baseline | Normal fecal matter (high prevalence) |
-| **Salmonella** | Bacterial | High contagion risk, gut health impact |
-| **Coccidiosis** | Parasitic | Gut health issue, common in flocks |
-| **New Castle Disease** | Viral | Respiratory/nervous system, highly contagious |
-
-## 📊 Key Features
-
-- **100% Recall Target**: Prevents false negatives (diseased → healthy)
-- **Focal Loss**: Emphasizes hard examples and rare disease classes
-- **False Negative Penalty**: 5x loss penalty for misclassifying diseased chickens as healthy
-- **Class Weighting**: 2x emphasis on disease classes during training
-- **Early Stopping**: Patience-based stopping on recall metric
-- **Comprehensive Metrics**: Per-class recall, precision, F1, confusion matrices
-
-## 🚀 Installation
-
-### Prerequisites
-
-- Python >= 3.12
-- CUDA-capable GPU (recommended) or CPU
-- 10GB+ free disk space
-
-### Setup
-
-**Using uv (recommended - faster):**
-```bash
-cd tokkatot_ai
-
-# Install dependencies
-uv pip install -e .
-
-# For development
-uv pip install -e ".[dev]"
-
-# Or use uv sync
-uv sync
-```
-
-**Using pip:**
-```bash
-cd tokkatot_ai
-
-# Install dependencies
-pip install -e .
-
-# For development
-pip install -e ".[dev]"
-```
-
-### Download Pre-trained Models
-
-**Latest Release (v1.0.0 - January 17, 2026):**
-
-1. **Ensemble Model** (Recommended for Production)
-   - File: `ensemble_model.pth`
-   - Size: ~200MB
-   - Includes: EfficientNetB0 + DenseNet121
-   - Performance: 99% test accuracy
-   - Download from: [GitHub Releases](https://github.com/tokkatot/tokkatot_ai/releases)
-
-2. **Individual Models** (Optional)
-   - `EfficientNetB0_best.pth` - 98.05% recall (90 epochs)
-   - `DenseNet121_best.pth` - 96.69% recall (20 epochs)
-   - Use for edge deployment or custom ensemble configurations
-
-**Place downloaded models in:**
-```
-tokkatot_ai/outputs/
-├── ensemble_model.pth          # Main ensemble model
-└── checkpoints/
-    ├── EfficientNetB0_best.pth # Individual model
-    └── DenseNet121_best.pth    # Individual model
-```
-
-### Verify the setup
-
-```bash
-python setup_check.py
-```
-
-
-## 📁 Project Structure
-
-```
-tokkatot_ai/
-├── main.py              # Entry point (train, test, eval)
-├── train.py             # Training script with recall-focused loss
-├── inference.py         # Ensemble inference with safety logic
-├── models.py            # EfficientNetB0 & DenseNet121 architectures
-├── data_utils.py        # Data loading and preprocessing
-├── evaluate.py          # Model evaluation on test set
-├── export_models.py     # PyTorch → ONNX export script
-├── export_tflite.py     # ONNX → TFLite conversion (runs in Docker)
-├── app.py               # FastAPI cloud inference API
-├── Dockerfile           # Cloud deployment container (CPU)
-├── Dockerfile.converter # TFLite conversion container (Python 3.9)
-├── docker-compose.yml   # Docker orchestration
-├── pyproject.toml       # Dependencies
-├── REALTIME_MONITORING.md # Edge deployment guide
-├── README.md            # This file
-├── archive/
-│   └── data/
-│       ├── train/       # Training images
-│       ├── val/         # Validation images
-│       └── test/        # Test images
-└── outputs/
-    ├── checkpoints/     # Individual model weights (.pth)
-    ├── ensemble_model.pth  # Final ensemble model (99% accuracy)
-    ├── onnx/            # ONNX intermediate models
-    ├── tflite/          # Edge-ready TFLite models
-    │   ├── EfficientNetB0_best.tflite
-    │   └── yolov8n.tflite
-    ├── logs/            # TensorBoard logs
-    └── evaluation/      # Confusion matrices & reports
-```
-
-## 🎓 Training
-
-### Check GPU
-
-```bash
-python check_gpu.py
-```
-
-### Start Training
-
-```bash
-python main.py train
-```
-
-
-### Continue Training
-Resume from where left off:
-
-```powershell
-python main.py train --resume
-```
-
-### Training Configuration
-
-The training script includes:
-- **Epochs**: 100 (with early stopping)
-- **Batch Size**: 32
-- **Learning Rate**: 1e-4 (with ReduceLROnPlateau)
-- **Loss Function**: RecallFocusedLoss (5x false negative penalty)
-- **Optimizer**: AdamW with weight decay
-- **Data Augmentation**: Rotation, flip, color jitter, affine transforms
-
-### Monitoring Training
-
-```bash
-# View training logs with TensorBoard
-tensorboard --logdir outputs/logs
-```
-
-Metrics tracked:
-- Loss (train/val)
-- Accuracy
-- **Recall** (primary metric)
-- Precision
-- F1 Score
-- Per-class recall
-
-## 🔍 Inference
-
-### Single Image Prediction
-
-```bash
-python main.py test path/to/image.jpg
-```
-
-### Programmatic Usage
-
-```python
-from inference import ChickenDiseaseDetector
-
-# Initialize detector
-detector = ChickenDiseaseDetector(
-    model_path='outputs/ensemble_model.pth',
-    healthy_threshold=0.80,      # 80% confidence required for healthy
-    uncertainty_threshold=0.50    # 50% minimum confidence
-)
-
-# Simple prediction
-result = detector.predict('image.jpg')
-print(result)  # 'Healthy', 'Salmonella', 'ISOLATE', etc.
-
-# Detailed prediction
-detailed = detector.predict('image.jpg', return_details=True)
-print(f"Classification: {detailed['classification']}")
-print(f"Should Isolate: {detailed['should_isolate']}")
-print(f"Action: {detailed['action']}")
-
-# Both model predictions
-print(f"EfficientNet: {detailed['models']['efficientnet']['prediction']}")
-print(f"DenseNet: {detailed['models']['densenet']['prediction']}")
-
-# Safety evaluation
-is_safe, reason = detector.evaluate_safety('image.jpg')
-print(f"Safe: {is_safe}, Reason: {reason}")
-```
-
-### Batch Prediction
-
-```python
-images = ['img1.jpg', 'img2.jpg', 'img3.jpg']
-results = detector.predict_batch(images, return_details=True)
-```
-
-## 📈 Performance Metrics
-
-### Achieved Performance (Test Set)
-
-| Model | Accuracy | Recall | Epochs | Status |
-|-------|----------|--------|--------|--------|
-| **Ensemble** | **99%** | **99%** | - | ✅ Production Ready |
-| EfficientNetB0 | 98.05% | 98.05% | 90 | ✅ Production Ready |
-| DenseNet121 | 96.69% | 96.69% | 20 | ✅ Production Ready |
-
-**Ensemble Test Results (70,677 samples):**
-- **Classified:** 67,137 (94.99%) with 99% accuracy
-- **Isolated:** 3,540 (5.01%) for safety verification
-- **Per-Class Recall:** Coccidiosis 100%, Healthy 98%, Newcastle 100%, Salmonella 100%
-
-### Target Metrics
-
-- **Recall (Disease Classes)**: > 99% ✅ **ACHIEVED**
-- **Recall (Healthy)**: ≥ 85% ✅ **ACHIEVED (98%)**
-- **Overall Accuracy**: ≥ 90% ✅ **ACHIEVED (99%)**
-- **Isolation Rate**: 10-20% ✅ **ACHIEVED (5.01%)**
-
-### Evaluation
-
-The system provides:
-- Confusion matrices per model
-- Per-class recall scores
-- Isolation statistics
-- Model agreement rates
-
-### Model Documentation
-
-- [EfficientNetB0 Model Card](MODEL_CARD_EfficientNetB0.md) - Fast, lightweight model (v1.0.0)
-- [DenseNet121 Model Card](MODEL_CARD_DenseNet121.md) - Dense connectivity model (v1.0.0)
-- [Ensemble Model Card](MODEL_CARD_ENSEMBLE.md) - Combined system (v1.0.0)
-
-## 🔧 Configuration
-
-### Adjust Safety Thresholds
-
-```python
-detector = ChickenDiseaseDetector(
-    model_path='outputs/ensemble_model.pth',
-    healthy_threshold=0.85,      # Stricter: require 85% for healthy
-    uncertainty_threshold=0.60    # Stricter: require 60% min confidence
-)
-```
-
-**Threshold Guidelines:**
-- **Higher healthy_threshold** (e.g., 0.85-0.90): More cautious, more isolations
-- **Lower healthy_threshold** (e.g., 0.70-0.75): Less cautious, fewer isolations
-- **Higher uncertainty_threshold** (e.g., 0.60-0.70): Reject more uncertain predictions
-- **Lower uncertainty_threshold** (e.g., 0.40-0.45): Accept more uncertain predictions
-
-### Training Hyperparameters
-
-Edit [train.py](train.py):
-
-```python
-BATCH_SIZE = 32           # Increase for faster training (if GPU allows)
-NUM_EPOCHS = 100          # Maximum epochs
-LEARNING_RATE = 1e-4      # Base learning rate
-IMG_SIZE = 224            # Input image size
-```
-
-## 🎯 Use Cases
-
-### Farm Deployment
-
-1. **Automated Monitoring**: Integrate with camera system for continuous fecal monitoring
-2. **Early Detection**: Identify sick chickens before symptoms spread
-3. **Quarantine Protocol**: Automatic isolation alerts for farm workers
-
-### Edge Deployment (Raspberry Pi + Hailo AI HAT+)
-
-The system supports 24/7 real-time monitoring via a Hybrid Cloud architecture:
-
-1. **Edge Screening:** EfficientNetB0 (`.tflite` → `.hef`) runs on the Raspberry Pi for fast detection.
-2. **Cloud Verification:** Flagged images are sent to the cloud where the full ensemble confirms the diagnosis.
-3. **Farmer Alerts:** Confirmed diseases trigger notifications on the Tokkatot Web App Dashboard.
-
-**Edge-ready models are available in `outputs/tflite/`:**
-- `EfficientNetB0_best.tflite` — Disease classification
-- `yolov8n.tflite` — Feces detection on conveyor belt
-
-See [REALTIME_MONITORING.md](REALTIME_MONITORING.md) for full deployment instructions.
-
-
-## 📄 License
+- Disease rate, anomaly percentage
+- System health (CPU, memory, uptime)
+
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for cloud configuration.
+
+## 📚 Documentation Index
+
+| Document | Purpose |
+|----------|---------|
+| [STRUCTURE.md](STRUCTURE.md) | Quick folder & module reference |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Data flow & component details |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Pi deployment & cloud setup |
+| [YOLO_TRAINING_TODO.md](YOLO_TRAINING_TODO.md) | Custom YOLO training roadmap |
+| [application/README.md](application/README.md) | Production system guide |
+| [development/README.md](development/README.md) | Training & research guide |
+| [Edge App Guide](development/docs/guides/EDGE_APP_GUIDE.md) | Local testing with webcam/video |
+| [Real-Time Monitoring](development/docs/guides/REALTIME_MONITORING.md) | Hybrid cloud architecture |
+| [Docker Deployment](development/docs/guides/DOCKER_DEPLOYMENT.md) | Container deployment |
+
+## License
 
 **© 2026 Tokkatot. All Rights Reserved.**
 
 This software is proprietary and confidential. It is part of Tokkatot's Smart Chicken Farming Solutions and may not be copied, modified, distributed, or used without explicit written permission from Tokkatot.
 
-## 🙏 Acknowledgments
-
-- Developed by: Tokkatot Smart Farming Team
-- Built with: PyTorch, torchvision (EfficientNet, DenseNet pretrained weights)
-- Framework: PyTorch, scikit-learn
-
-## 📧 Contact
+## Contact
 
 **Tokkatot Smart Chicken Farming Solutions**
 
-For business inquiries, technical support, or partnership opportunities:
-- **Email**: [tokkatot.info@gmail.com](tokkatot.info@gmail.com)
-- **Website**: [tokkatot.aztrolabe.com](tokkatot.aztrolabe.com)
-- **AI Engineer**: [Sun Heng](sunhenglong@outlook.com)
+- **Email**: [tokkatot.info@gmail.com](mailto:tokkatot.info@gmail.com)
+- **Website**: [tokkatot.aztrolabe.com](https://tokkatot.aztrolabe.com)
+- **AI Engineer**: [Sun Heng](mailto:sunhenglong@outlook.com)
 
 ---
 

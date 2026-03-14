@@ -1,0 +1,16 @@
+/* Cleaned up index.css */
+:root {
+  --tokkatot-font: 'Mi Sans', 'system-ui', 'Noto Sans Khmer', Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--tokkatot-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

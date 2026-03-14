@@ -1,6 +1,8 @@
 # 🚀 Application - Production System
 
-**The live disease detection system integrated with Tokkatot.**
+**The backend AI engine for Tokkatot Smart Chicken Farming.**
+
+> **Note:** This is a backend-only system. The Tokkatot Web App (farmer dashboard) is a separate project that integrates with this engine via REST API.
 
 ## ✅ Status
 
@@ -16,7 +18,7 @@
 
 ```
 application/
-├── app.py                    # Main entry point (88 lines)
+├── app.py                  # Main entry point (88 lines)
 ├── yolov8n.pt              # YOLO model weights
 │
 ├── backend/                # Backend logic
@@ -28,10 +30,13 @@ application/
 │   │   ├── tracker.py      # Tracking (94)
 │   │   └── aggregator.py   # Anomaly (52)
 │   │
-│   ├── api/                # REST API (FUTURE)
+│   ├── api/                # REST API for Tokkatot Web App
 │   │   ├── routes.py       # Endpoints
 │   │   ├── models.py       # Request/Response schemas
 │   │   └── handlers.py     # Business logic
+│   ├── inferences/
+│   │   ├── yolov8n_custom.pt      # Fine-tuned YOLO model
+│   │   └── ensemble_model.pt      # ensemble model
 │   │
 │   ├── services/           # Business logic
 │   │   ├── inference.py    # ML wrapper
@@ -44,33 +49,6 @@ application/
 │       ├── transforms.py   # Image preprocessing
 │       ├── logger.py       # Logging
 │       └── validators.py   # Input validation
-│
-├── frontend/               # User interface (OPTIONAL)
-│   ├── streaming/          # Real-time video UI
-│   │   ├── app.py          # Main UI (Streamlit/Flask)
-│   │   └── components.py   # UI components
-│   │
-│   ├── upload/             # Photo analysis UI
-│   │   ├── uploader.py     # Upload handler
-│   │   ├── preview.py      # Image preview
-│   │   └── results.py      # Results display
-│   │
-│   └── components/         # Shared components
-│       ├── navbar.py
-│       ├── dashboard.py
-│       └── metrics_panel.py
-│
-├── deployment/             # Deployment configs
-│   ├── Dockerfile          # Container definition
-│   ├── docker-compose.yml  # Multi-container setup
-│   ├── cloud_config.py     # Cloud credentials
-│   ├── cloud_monitor.py    # Metrics uploader
-│   └── README.md           # Deployment guide
-│
-├── config/                 # Configuration
-│   ├── settings.py         # App settings
-│   ├── logging.yaml        # Logging config
-│   └── cloud.yaml          # Cloud config
 │
 └── requirements.txt        # Python dependencies
 ```
@@ -193,9 +171,9 @@ class AnomalyAggregator:
 
 ---
 
-## 🔌 API Endpoints (FUTURE)
+## 🔌 API Endpoints (for Tokkatot Web App)
 
-Once implemented in `backend/api/`:
+The REST API lets the Tokkatot Web App integrate with the AI engine:
 
 ```
 POST   /api/v1/detect           # Inference on frame
@@ -307,31 +285,6 @@ cloud:
   endpoint: "https://cloud.tokkatot.ai"
   device_id: "pi-coop-1"
 ```
-
----
-
-## 🎨 Frontend (Optional)
-
-### Streaming UI
-Real-time video with overlay:
-- Live detection boxes
-- FPS counter
-- Disease count
-- Anomaly rate
-- Alert notifications
-
-### Upload UI
-Analyze single photos:
-- Image upload
-- Preview
-- Instant results
-- Download report
-
-### Shared Components
-- Navigation bar
-- Dashboard
-- Metrics panel
-- System status indicator
 
 ---
 
@@ -457,8 +410,6 @@ class ChickenDiseaseDetector:
 
 ## 📚 Additional Resources
 
-- **Deployment**: `deployment/README.md`
-- **API Documentation**: `backend/api/README.md`
 - **Architecture**: `../STRUCTURE.md`
 - **Full Guide**: `../DEPLOYMENT_GUIDE.md`
 

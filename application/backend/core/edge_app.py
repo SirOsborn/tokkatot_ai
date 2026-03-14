@@ -15,6 +15,7 @@ from .aggregator import AnomalyAggregator
 from .processor import FrameProcessor
 from .display import FrameDisplay
 from .interface import CameraInterface, VideoInterface, DemoInterface
+from ..services.cloud_sync import CloudSyncService
 
 
 class EdgeApp:
@@ -22,10 +23,11 @@ class EdgeApp:
     
     def __init__(
         self,
-        ensemble_model_path: str = "outputs/ensemble_model.pth",
-        yolo_model_path: str = "yolov8n.pt",
+        ensemble_model_path: str = "inferences/ensemble_model.pth",
+        yolo_model_path: str = "inferences/yolov8n.pt",
         conf_threshold: float = 0.5,
         anomaly_threshold_pct: float = 10.0,
+        cloud_api_url: str = "http://localhost:8000/api/v1",
         device: str = 'auto'
     ):
         """Initialize with models and defaults."""
@@ -51,15 +53,17 @@ class EdgeApp:
         self.yolo = YOLO(yolo_model_path)
         print("✓ YOLO loaded!")
         
-        print("\n[3/3] Initializing Tracking & Aggregation...")
+        print("\n[3/3] Initializing Tracking, Aggregation & Cloud Sync...")
         self.tracker = CentroidTracker(maxDisappeared=30)
         self.aggregator = AnomalyAggregator(window_size_minutes=5)
+        self.cloud_service = CloudSyncService(api_url=cloud_api_url)
         print("✓ Ready!")
         
         # Processor and display
         self.processor = FrameProcessor(
             self.detector, self.yolo, self.tracker, 
-            self.aggregator, conf_threshold
+            self.aggregator, conf_threshold, anomaly_threshold_pct,
+            cloud_service=self.cloud_service
         )
         self.display = FrameDisplay(anomaly_threshold_pct)
         self.anomaly_threshold = anomaly_threshold_pct
@@ -84,9 +88,14 @@ class EdgeApp:
     def run_webcam(self, camera_id: int = 0):
         """Run webcam monitoring."""
         interface = CameraInterface(camera_id)
+        
+        def process_and_get_frame(frame):
+            annotated_frame, stats = self._process_and_display(frame)
+            return annotated_frame, stats
+            
         interface.run(
-            lambda f: self._process_and_display(f)[1],
-            lambda f: self._process_and_display(f)[0],
+            lambda f: process_and_get_frame(f)[1], # Stats for console
+            lambda f: process_and_get_frame(f)[0], # Frame for display
             self._print_final_stats
         )
         self._print_final_stats()
@@ -94,9 +103,14 @@ class EdgeApp:
     def run_video_file(self, video_path: str):
         """Run video file processing."""
         interface = VideoInterface(video_path)
+        
+        def process_and_get_frame(frame):
+            annotated_frame, stats = self._process_and_display(frame)
+            return annotated_frame, stats
+            
         interface.run(
-            lambda f: self._process_and_display(f)[1],
-            lambda f: self._process_and_display(f)[0],
+            lambda f: process_and_get_frame(f)[1],
+            lambda f: process_and_get_frame(f)[0],
             self._print_final_stats
         )
         self._print_final_stats()
@@ -146,7 +160,7 @@ class EdgeApp:
         print("=" * 60)
         print(f"Duration: {elapsed:.1f}s")
         print(f"Frames: {self.processor.stats['total_frames']}")
-        print(f"FPS: {self.processor.stats['total_frames'] / max(1, elapsed):.1f}")
+        print(f"FPS: {self.processor.stats['total_frames'] / max(1.0, elapsed):.1f}")
         print(f"Detections: {self.processor.stats['total_detections']}")
         print(f"  - Healthy: {self.processor.stats['healthy_detections']}")
         print(f"  - Disease: {self.processor.stats['disease_detections']}")

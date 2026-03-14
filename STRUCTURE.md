@@ -5,12 +5,11 @@
 ```
 tokkatot_ai/
 │
-├── application/      ← DEPLOY THIS
+├── application/      ← DEPLOY THIS (backend engine)
 │   ├── app.py        (main entry point)
 │   ├── backend/core/ (ML pipeline)
-│   ├── backend/api/  (REST API - optional)
-│   ├── frontend/     (Web UI - optional)
-│   ├── deployment/   (Docker, systemd)
+│   ├── backend/api/  (REST API for Tokkatot Web App)
+│   ├── backend/services/ (inference, metrics, alerts)
 │   └── requirements.txt
 │
 └── development/      ← TRAINING ONLY

@@ -1,0 +1,287 @@
+/* Tokkatot Design System Global Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap');
+
+:root {
+  --tokkatot-primary: #20a39e;
+  --tokkatot-secondary: #ffba49;
+  --tokkatot-supplementary: #ef5b5b;
+  --tokkatot-bg: #f8fdff;
+  --tokkatot-card-bg: rgba(255, 255, 255, 0.9);
+  --tokkatot-font: 'Mi Sans', 'system-ui', 'Noto Sans Khmer', Arial, sans-serif;
+  --tokkatot-shadow: 0 10px 30px rgba(32, 163, 158, 0.1);
+  --tokkatot-shadow-hover: 0 15px 40px rgba(32, 163, 158, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--tokkatot-font);
+  background-color: var(--tokkatot-bg);
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(180, 67%, 94%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(40, 100%, 96%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(180, 67%, 94%, 1) 0, transparent 50%);
+  margin: 0;
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  color: #2c3e50;
+}
+
+/* Fix for the unwanted lines in index.css */
+#root {
+  border-inline: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.tokkatot-navbar {
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  color: var(--tokkatot-primary);
+  padding: 12px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.4em;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(32, 163, 158, 0.15);
+  box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+}
+
+.tokkatot-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.tokkatot-logo {
+  height: 42px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(32, 163, 158, 0.2));
+}
+
+.tokkatot-container {
+  min-height: 100vh;
+  padding-top: 100px;
+  padding-bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.tokkatot-main-card {
+  background: var(--tokkatot-card-bg);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 40px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: var(--tokkatot-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  text-align: center;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tokkatot-main-card:hover {
+  box-shadow: var(--tokkatot-shadow-hover);
+}
+
+.tokkatot-title {
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-size: 2.2em;
+  font-weight: 800;
+}
+
+.tokkatot-subtitle {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 32px;
+}
+
+.tokkatot-upload-zone {
+  border: 2px dashed #cbd5e0;
+  border-radius: 16px;
+  padding: 40px 20px;
+  margin: 20px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fcfdfe;
+}
+
+.tokkatot-upload-zone:hover {
+  border-color: var(--tokkatot-primary);
+  background: #f0fdfa;
+}
+
+.tokkatot-input-hidden {
+  display: none;
+}
+
+.tokkatot-btn {
+  padding: 14px 44px;
+  background: linear-gradient(135deg, var(--tokkatot-primary) 0%, #17807c 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(32, 163, 158, 0.3);
+  margin-top: 10px;
+}
+
+.tokkatot-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(32, 163, 158, 0.4);
+}
+
+.tokkatot-btn:active {
+  transform: translateY(0);
+}
+
+.tokkatot-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.tokkatot-result-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+  margin-top: 30px;
+  text-align: left;
+  animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  width: 100%;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.status-badge {
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-healthy { background: #dcfce7; color: #166534; }
+.status-disease { background: #fee2e2; color: #991b1b; }
+
+.visual-metric {
+  margin-bottom: 20px;
+}
+
+.metric-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.progress-bar-bg {
+  height: 10px;
+  background: #edf2f7;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease-out;
+}
+
+.tokkatot-floating-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-item {
+  position: absolute;
+  opacity: 0.4;
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, 50px) rotate(10deg); }
+  66% { transform: translate(-20px, 80px) rotate(-10deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.tokkatot-footer {
+  margin-top: auto;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 0.9em;
+}
+
+.interactive-glyph {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.interactive-glyph:hover {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 40px;
+  width: 90%;
+  max-width: 800px;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.info-card i {
+  font-size: 2em;
+  margin-bottom: 10px;
+  display: block;
+}
+
