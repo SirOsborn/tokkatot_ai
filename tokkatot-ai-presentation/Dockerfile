@@ -1,5 +1,5 @@
-# Use official Node.js image
-FROM node:18-alpine
+# Use official Node.js image (Debian-based, not Alpine)
+FROM node:18
 # Add environment variables to fix native binding issue
 ENV NODE_OPTIONS=--openssl-legacy-provider
 ENV npm_config_optional=false
