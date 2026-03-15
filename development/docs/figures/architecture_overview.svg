@@ -1,98 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<svg width="1000" height="500" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="500" fill="#ffffff" />
+  
+  <!-- Title -->
+  <text x="500" y="40" font-family="Arial" font-size="24" font-weight="bold" fill="#333" text-anchor="middle">Tokkatot AI: Hierarchical Architecture Overview</text>
+  
+  <!-- 1. Farm Environment -->
+  <rect x="20" y="80" width="220" height="340" rx="10" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2" />
+  <text x="130" y="110" font-family="Arial" font-size="16" font-weight="bold" fill="#495057" text-anchor="middle">1. Farm Input</text>
+  
+  <!-- Camera/Conveyor Icon -->
+  <rect x="40" y="130" width="180" height="40" rx="5" fill="#e9ecef" />
+  <text x="130" y="155" font-family="Arial" font-size="12" fill="#495057" text-anchor="middle">Manure Conveyor Belt</text>
+  
+  <circle cx="130" cy="220" r="30" fill="#20a39e" opacity="0.2" />
+  <circle cx="130" cy="220" r="10" fill="#20a39e" />
+  <text x="130" y="270" font-family="Arial" font-size="12" font-weight="bold" fill="#20a39e" text-anchor="middle">IoT Camera Sensor</text>
+  
+  <!-- 2. Edge Layer -->
+  <rect x="270" y="80" width="280" height="340" rx="10" fill="#f0f9f9" stroke="#20a39e" stroke-width="2" />
+  <text x="410" y="110" font-family="Arial" font-size="16" font-weight="bold" fill="#20a39e" text-anchor="middle">2. Edge Screening (Pi)</text>
+  
+  <rect x="300" y="140" width="220" height="100" rx="8" fill="#20a39e" />
+  <text x="410" y="175" font-family="Arial" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">YOLOv8</text>
+  <text x="410" y="200" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Lightweight Gatekeeper</text>
+  <text x="410" y="220" font-family="Arial" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">24/7 Real-Time Monitoring</text>
+  
+  <!-- Edge Decision -->
+  <path d="M 410 240 L 410 300" stroke="#ccc" stroke-width="2" fill="none" marker-end="url(#arrowhead-gray)" />
+  <polygon points="410,290 470,330 410,370 350,330" fill="#ffffff" stroke="#20a39e" stroke-width="2" />
+  <text x="410" y="325" font-family="Arial" font-size="11" font-weight="bold" fill="#20a39e" text-anchor="middle">UNHEALTHY?</text>
+  
+  <!-- 3. Cloud Layer -->
+  <rect x="580" y="80" width="380" height="340" rx="10" fill="#fff9f0" stroke="#ffba49" stroke-width="2" />
+  <text x="770" y="110" font-family="Arial" font-size="16" font-weight="bold" fill="#ffba49" text-anchor="middle">3. Cloud Diagnostic (Server)</text>
+  
+  <!-- Ensemble Box -->
+  <rect x="610" y="140" width="320" height="120" rx="8" fill="#ffba49" />
+  <text x="770" y="170" font-family="Arial" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">SAFETY ENSEMBLE</text>
+  <rect x="625" y="185" width="140" height="30" rx="4" fill="#ffffff" opacity="0.3" />
+  <text x="695" y="205" font-family="Arial" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">EfficientNetB0</text>
+  <rect x="775" y="185" width="140" height="30" rx="4" fill="#ffffff" opacity="0.3" />
+  <text x="845" y="205" font-family="Arial" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">DenseNet121</text>
+  <text x="770" y="240" font-family="Arial" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">VOTING ARCHITECTURE (λ=5 RECALL FOCUS)</text>
+  
+  <!-- Result Path -->
+  <path d="M 770 260 L 770 300" stroke="#ccc" stroke-width="2" fill="none" marker-end="url(#arrowhead-gray)" />
+  
+  <!-- Final Output Icons -->
+  <rect x="620" y="310" width="140" height="40" rx="20" fill="#ef5b5b" />
+  <text x="690" y="335" font-family="Arial" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Farmer Alert</text>
+  
+  <rect x="780" y="310" width="140" height="40" rx="20" fill="#ffba49" />
+  <text x="850" y="335" font-family="Arial" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Vet Review</text>
+  
+  <!-- Connecting Lines -->
+  <path d="M 240 220 L 270 220" stroke="#ccc" stroke-width="2" fill="none" marker-end="url(#arrowhead-gray)" />
+  <path d="M 470 330 L 580 200" stroke="#ffba49" stroke-width="4" fill="none" marker-end="url(#arrowhead-amber)" />
+  <text x="525" y="250" font-family="Arial" font-size="12" font-weight="bold" fill="#ffba49" transform="rotate(-50, 525, 250)">TRIGGER UPLOAD</text>
+  
+  <!-- Legend -->
+  <text x="500" y="470" font-family="Arial" font-size="10" fill="#999" text-anchor="middle">Tokkatot AI Smart Farming - Developed for Deep Learning Final Course 2026</text>
+  
+  <!-- Markers -->
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#12406a" />
+    <marker id="arrowhead-gray" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ccc" />
+    </marker>
+    <marker id="arrowhead-amber" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffba49" />
     </marker>
   </defs>
-  <style>
-    .bg { fill: #f8fbff; }
-    .frame-edge { fill: #ffffff; stroke: #12406a; stroke-width: 2.6; rx: 18; ry: 18; }
-    .frame-cloud { fill: #ffffff; stroke: #8d6e63; stroke-width: 2.6; rx: 18; ry: 18; }
-    .box { fill: #f5f8fc; stroke: #12406a; stroke-width: 2.2; rx: 14; ry: 14; }
-    .box-cloud { fill: #fdf5ee; stroke: #8d6e63; stroke-width: 2.2; rx: 14; ry: 14; }
-    .text { font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; fill: #12406a; font-weight: 700; }
-    .small { font-family: "Segoe UI", Arial, sans-serif; font-size: 14px; fill: #12406a; font-weight: 500; }
-    .text-cloud { font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; fill: #6d4c41; font-weight: 700; }
-    .small-cloud { font-family: "Segoe UI", Arial, sans-serif; font-size: 14px; fill: #6d4c41; font-weight: 500; }
-    .arrow { stroke: #12406a; stroke-width: 2.3; fill: none; marker-end: url(#arrow); }
-    .arrow-cloud { stroke: #8d6e63; stroke-width: 2.3; fill: none; marker-end: url(#arrow); }
-    .dashed { stroke-dasharray: 7 7; }
-  </style>
-
-  <rect class="bg" x="0" y="0" width="1200" height="720" />
-
-  <!-- Edge Device block -->
-  <rect class="frame-edge" x="60" y="70" width="460" height="560" />
-  <text class="text" x="290" y="110" text-anchor="middle">Edge device (farm site)</text>
-
-  <rect class="box" x="100" y="140" width="380" height="70" />
-  <text class="text" x="290" y="175" text-anchor="middle">Camera sensor (conveyor feed)</text>
-
-  <rect class="box" x="100" y="230" width="380" height="90" />
-  <text class="text" x="290" y="270" text-anchor="middle">YOLO ROI extraction</text>
-  <text class="small" x="290" y="292" text-anchor="middle">detect feces, crop region</text>
-
-  <rect class="box" x="100" y="340" width="380" height="80" />
-  <text class="text" x="290" y="378" text-anchor="middle">EfficientNetB0 (TFLite)</text>
-  <text class="small" x="290" y="398" text-anchor="middle">fast edge screening</text>
-
-  <rect class="box" x="100" y="440" width="380" height="80" />
-  <text class="text" x="290" y="478" text-anchor="middle">Safety / confidence gate</text>
-  <text class="small" x="290" y="498" text-anchor="middle">routes uncertain cases</text>
-
-  <rect class="box" x="140" y="540" width="300" height="70" />
-  <text class="text" x="290" y="575" text-anchor="middle">Edge actions</text>
-  <text class="small" x="290" y="595" text-anchor="middle">pass, isolate, or escalate</text>
-
-  <!-- Cloud block -->
-  <rect class="frame-cloud" x="620" y="60" width="520" height="570" />
-  <text class="text-cloud" x="880" y="100" text-anchor="middle">Cloud services</text>
-
-  <rect class="box-cloud" x="660" y="130" width="440" height="80" />
-  <text class="text-cloud" x="880" y="168" text-anchor="middle">Secure ingest API</text>
-  <text class="small-cloud" x="880" y="188" text-anchor="middle">receives escalated ROIs</text>
-
-  <rect class="box-cloud" x="660" y="230" width="440" height="110" />
-  <text class="text-cloud" x="880" y="270" text-anchor="middle">Ensemble inference</text>
-  <text class="small-cloud" x="880" y="292" text-anchor="middle">EfficientNetB0 + DenseNet121</text>
-  <text class="small-cloud" x="880" y="314" text-anchor="middle">safety vote & uncertainty check</text>
-
-  <rect class="box-cloud" x="660" y="360" width="440" height="90" />
-  <text class="text-cloud" x="880" y="398" text-anchor="middle">Decisioning + alerting</text>
-  <text class="small-cloud" x="880" y="420" text-anchor="middle">final label, isolate/alert decision</text>
-
-  <rect class="box-cloud" x="660" y="470" width="210" height="80" />
-  <text class="text-cloud" x="765" y="508" text-anchor="middle">Model registry</text>
-  <text class="small-cloud" x="765" y="528" text-anchor="middle">checkpoints, tflite/onnx</text>
-
-  <rect class="box-cloud" x="910" y="470" width="190" height="80" />
-  <text class="text-cloud" x="1005" y="508" text-anchor="middle">Observability</text>
-  <text class="small-cloud" x="1005" y="528" text-anchor="middle">logs, metrics, audits</text>
-
-  <rect class="box-cloud" x="710" y="570" width="340" height="70" />
-  <text class="text-cloud" x="880" y="605" text-anchor="middle">Operator dashboard / notifications</text>
-
-  <!-- Arrows inside Edge -->
-  <line class="arrow" x1="290" y1="210" x2="290" y2="230" />
-  <line class="arrow" x1="290" y1="320" x2="290" y2="340" />
-  <line class="arrow" x1="290" y1="420" x2="290" y2="440" />
-  <line class="arrow" x1="290" y1="520" x2="290" y2="540" />
-
-  <!-- Edge to Cloud escalation -->
-  <path class="arrow" d="M480 480 C600 420 640 220 770 180" />
-  <text class="small" x="560" y="360" text-anchor="middle" transform="rotate(-20 560 360)">uncertain / suspicious</text>
-
-  <!-- Edge safe path note -->
-  <text class="small" x="170" y="330" text-anchor="start">safe & confident</text>
-
-  <!-- Cloud internal arrows -->
-  <line class="arrow-cloud" x1="880" y1="210" x2="880" y2="230" />
-  <line class="arrow-cloud" x1="880" y1="340" x2="880" y2="360" />
-  <line class="arrow-cloud" x1="880" y1="450" x2="880" y2="470" />
-  <line class="arrow-cloud" x1="765" y1="550" x2="765" y2="570" />
-  <line class="arrow-cloud" x1="1005" y1="550" x2="1005" y2="570" />
-
-  <!-- Return path to edge actions -->
-  <path class="arrow-cloud dashed" d="M880 640 C720 650 540 630 380 610" />
-  <text class="small-cloud" x="600" y="660" text-anchor="middle">return label / alert to edge</text>
 </svg>

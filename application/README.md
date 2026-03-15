@@ -18,118 +18,62 @@
 
 ```
 application/
-├── app.py                  # Main entry point (88 lines)
-├── yolov8n.pt              # YOLO model weights
+├── app.py                  # Main entry point: Edge Gatekeeper
+├── yolov8_custom.pt        # Custom YOLO model (Edge screening)
 │
 ├── backend/                # Backend logic
 │   ├── core/               # ML pipeline (550 lines total)
-│   │   ├── edge_app.py     # Coordinator (158)
-│   │   ├── processor.py    # Detection+Classification (103)
-│   │   ├── display.py      # Visualization (101)
-│   │   ├── interface.py    # I/O modes (189)
-│   │   ├── tracker.py      # Tracking (94)
-│   │   └── aggregator.py   # Anomaly (52)
-│   │
-│   ├── api/                # REST API for Tokkatot Web App
-│   │   ├── routes.py       # Endpoints
-│   │   ├── models.py       # Request/Response schemas
-│   │   └── handlers.py     # Business logic
-│   ├── inferences/
-│   │   ├── yolov8n_custom.pt      # Fine-tuned YOLO model
-│   │   └── ensemble_model.pt      # ensemble model
+│   │   ├── edge_app.py     # Edge coordinator: 24/7 YOLO loop
+│   │   ├── processor.py    # YOLO Screening logic
+│   │   └── interface.py    # I/O modes (Webcam/Conveyor)
 │   │
 │   ├── services/           # Business logic
-│   │   ├── inference.py    # ML wrapper
-│   │   ├── metrics.py      # Metrics collection
-│   │   ├── alerts.py       # Alert logic
-│   │   └── health_check.py # System health
+│   │   ├── cloud_sync.py   # Cloud image uploader (triggers on anomaly)
+│   │   ├── inference.py    # Cloud-side Ensemble wrapper
+│   │   └── alerts.py       # Alert logic (Farmer push notifications)
 │   │
 │   └── utils/              # Helper functions
-│       ├── config.py       # Settings
-│       ├── transforms.py   # Image preprocessing
-│       ├── logger.py       # Logging
-│       └── validators.py   # Input validation
+│       └── config.py       # Settings (Edge/Cloud thresholds)
 │
 └── requirements.txt        # Python dependencies
 ```
 
 ---
 
-## 🎯 Quick Start
+## 🎯 Hierarchical Workflow
 
-### 1. Local Development
+### 1. Edge Screening (Raspberry Pi)
+- **Continuous Monitoring**: YOLOv8 monitors the manure conveyor 24/7.
+- **Binary Gate**: Classifies samples as `Healthy` or `Unhealthy`.
+- **Zero-Waste**: Healthy samples are processed locally with zero bandwidth cost.
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run demo mode (test with static image)
-python app.py --demo
-
-# Run with webcam
-python app.py --camera-id 0
-
-# Run with video file
-python app.py --video test.mp4
-
-# View all options
-python app.py --help
-```
-
-### 2. Raspberry Pi (24/7)
-
-```bash
-# Setup systemd service
-sudo cp deployment/tokkatot-edge.service /etc/systemd/system/
-
-# Enable and start
-sudo systemctl enable tokkatot-edge
-sudo systemctl start tokkatot-edge
-
-# Monitor
-sudo systemctl status tokkatot-edge
-sudo journalctl -u tokkatot-edge -f
-```
-
-### 3. Docker Container
-
-```bash
-# Build image
-docker build -t tokkatot-edge .
-
-# Run container
-docker run --rm -it \
-  -v /dev/video0:/dev/video0 \
-  tokkatot-edge
-
-# Or use docker-compose
-docker-compose up
-```
+### 2. Cloud Diagnosis (Tokkatot Server)
+- **Triggered Analysis**: Only "Unhealthy" detections trigger a high-res upload.
+- **Ensemble Voting**: EfficientNetB0 and DenseNet121 provide a high-precision diagnosis.
+- **Safety-First**: A final alert is only issued if the Ensemble reaches a consensus.
 
 ---
 
-## 📊 Core Modules (550 lines)
+## 📊 Core Modules
 
-### backend/core/edge_app.py (158 lines)
-**Coordinator** - Ties everything together
-```python
-class EdgeApp:
-    def __init__(...)          # Load models
-    def run_webcam()           # Live capture mode
-    def run_video_file()       # Video file mode
-    def capture_and_analyze()  # Single photo mode
-```
-
-### backend/core/processor.py (103 lines)
-**ML Pipeline** - Where inference happens
+### backend/core/processor.py
+**Edge Screening** - Fast binary classification
 ```python
 class FrameProcessor:
     def process_frame(frame):
-        # 1. YOLO: Detect feces
-        # 2. Classify: Ensemble voting
-        # 3. Track: Centroid matching
-        # 4. Aggregate: 5-min rolling window
-        return metrics
+        # 1. YOLOv8: Detect 'Unhealthy' feces
+        # 2. IF UNHEALTHY: Trigger Cloud Sync
+        return is_unhealthy
+```
+
+### backend/services/cloud_sync.py
+**Cloud Bridge** - Manages data transmission
+```python
+class CloudSync:
+    def upload_for_diagnosis(frame):
+        # 1. Capture high-res buffer
+        # 2. POST to Tokkatot Cloud Ensemble API
+        # 3. Handle diagnostic response
 ```
 
 ### backend/core/display.py (101 lines)

@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Khmer:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Khmer", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-primary: #20a39e;
+  --color-secondary: #ffba49;
+  --color-supplementary: #ef5b5b;
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-zinc-900 font-sans;
+  }
+}
+
+.slide-container {
+  @apply w-screen h-screen flex flex-col overflow-hidden relative bg-white;
+}
+
+.slide-content {
+  @apply flex-1 flex flex-col p-6 md:p-10 w-full overflow-hidden mx-auto;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl rounded-3xl;
+}
+
+.accent-border {
+  @apply border-l-4 border-primary pl-6;
+}
+
+.title-gradient {
+  @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+}

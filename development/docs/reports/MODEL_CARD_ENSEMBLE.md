@@ -6,7 +6,7 @@
 
 ## 🎯 Overview
 
-The Tokkatot Ensemble Model combines two state-of-the-art deep learning architectures into a single safety-first system for chicken disease detection. By leveraging the complementary strengths of **EfficientNetB0** and **DenseNet121**, the ensemble achieves **99% accuracy** on real-world test data while maintaining maximum safety through a parallel voting mechanism.
+The Tokkatot Ensemble Model is a **Cloud-based Diagnostic Engine** that combines two state-of-the-art deep learning architectures (EfficientNetB0 and DenseNet121) into a single safety-first system. In the Tokkatot Hierarchical Architecture, this ensemble is **triggered only when the Edge-based YOLO model detects a suspicious (unhealthy) fecal sample**. By leveraging the complementary strengths of both backbones, the ensemble achieves **99% accuracy** on suspicious samples, providing the final high-precision diagnosis for the farmer.
 
 ## 📊 Performance Summary
 
@@ -42,30 +42,29 @@ The Tokkatot Ensemble Model combines two state-of-the-art deep learning architec
 
 ## 🏗️ Architecture
 
-### Dual-Model Parallel Voting System
+### Hierarchical Trigger Pipeline
 
 ```
-                    ┌───────────────────────┐
-                    │    Input Image        │
-                    │   (224x224 RGB)       │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │                       │
-         ┌──────────▼──────────┐  ┌────────▼─────────┐
-         │   EfficientNetB0    │  │   DenseNet121    │
-         │   (98.05% recall)   │  │  (96.69% recall) │
-         └──────────┬──────────┘  └────────┬─────────┘
-                    │                       │
-                    │   ┌───────────────┐   │
-                    └───► Safety Vote   ◄───┘
-                        │    Logic      │
-                        └───────┬───────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │    Classification     │
-                    │  or Isolation Action  │
-                    └───────────────────────┘
+[EDGE: Raspberry Pi]
+       │
+  ┌────▼────┐
+  │  YOLO   │ (24/7 Screening: Healthy vs Unhealthy)
+  └────┬────┘
+       │
+  (IF UNHEALTHY) ──► [CLOUD: Tokkatot Server]
+                            │
+               ┌────────────▼────────────┐
+               │    Ensemble Diagnosis   │
+               │ (EfficientNet + DenseNet)│
+               └────────────┬────────────┘
+                            │
+               ┌────────────▼────────────┐
+               │    Safety Vote Logic    │
+               └────────────┬────────────┘
+                            │
+               ┌────────────▼────────────┐
+               │  Disease Alert/Action   │
+               └─────────────────────────┘
 ```
 
 ### Safety-First Decision Logic

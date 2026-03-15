@@ -1,0 +1,42 @@
+<svg width="600" height="500" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="500" fill="#ffffff" />
+  
+  <!-- Input Image -->
+  <rect x="225" y="20" width="150" height="100" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1" />
+  <text x="300" y="70" font-family="Arial" font-size="14" font-weight="bold" fill="#666" text-anchor="middle">Input Image</text>
+  <text x="300" y="90" font-family="Arial" font-size="10" fill="#999" text-anchor="middle">(From YOLO Trigger)</text>
+  
+  <!-- Split Paths -->
+  <path d="M 300 120 L 150 180" stroke="#ccc" stroke-width="2" fill="none" />
+  <path d="M 300 120 L 450 180" stroke="#ccc" stroke-width="2" fill="none" />
+  
+  <!-- Model 1 -->
+  <rect x="50" y="180" width="200" height="80" rx="10" fill="#20a39e" />
+  <text x="150" y="215" font-family="Arial" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">EfficientNetB0</text>
+  <text x="150" y="240" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Feature Specialist</text>
+  
+  <!-- Model 2 -->
+  <rect x="350" y="180" width="200" height="80" rx="10" fill="#20a39e" />
+  <text x="450" y="215" font-family="Arial" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">DenseNet121</text>
+  <text x="450" y="240" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Texture Specialist</text>
+  
+  <!-- Join Paths -->
+  <path d="M 150 260 L 300 320" stroke="#ccc" stroke-width="2" fill="none" />
+  <path d="M 450 260 L 300 320" stroke="#ccc" stroke-width="2" fill="none" />
+  
+  <!-- Voting Gate -->
+  <polygon points="300,300 400,360 300,420 200,360" fill="#ffba49" />
+  <text x="300" y="355" font-family="Arial" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">VOTING GATE</text>
+  <text x="300" y="375" font-family="Arial" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">CONSENSUS &amp; CONFIDENCE</text>
+  
+  <!-- Final Outputs -->
+  <path d="M 300 420 L 150 460" stroke="#ccc" stroke-width="2" fill="none" />
+  <path d="M 300 420 L 450 460" stroke="#ccc" stroke-width="2" fill="none" />
+  
+  <rect x="50" y="460" width="200" height="40" rx="20" fill="#20a39e" />
+  <text x="150" y="485" font-family="Arial" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">Final Diagnosis</text>
+  
+  <rect x="350" y="460" width="200" height="40" rx="20" fill="#ef5b5b" />
+  <text x="450" y="485" font-family="Arial" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">Uncertain → Isolate</text>
+</svg>

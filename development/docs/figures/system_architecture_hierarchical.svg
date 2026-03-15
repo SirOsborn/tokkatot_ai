@@ -1,0 +1,42 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#ffffff" />
+  
+  <!-- Edge Section -->
+  <rect x="20" y="50" width="300" height="300" rx="15" fill="#f0f9f9" stroke="#20a39e" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="170" y="80" font-family="Arial" font-size="18" font-weight="bold" fill="#20a39e" text-anchor="middle">EDGE: Raspberry Pi</text>
+  
+  <!-- Conveyor Icon -->
+  <rect x="50" y="110" width="240" height="40" rx="5" fill="#e0e0e0" stroke="#999" stroke-width="1" />
+  <text x="170" y="135" font-family="Arial" font-size="14" fill="#666" text-anchor="middle">Manure Conveyor Stream</text>
+  
+  <!-- YOLO Box -->
+  <rect x="70" y="180" width="200" height="80" rx="10" fill="#20a39e" />
+  <text x="170" y="215" font-family="Arial" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">YOLOv8 Gatekeeper</text>
+  <text x="170" y="240" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">24/7 Healthy vs Unhealthy</text>
+  
+  <!-- Trigger Arrow -->
+  <path d="M 320 220 L 460 220" stroke="#ffba49" stroke-width="4" fill="none" marker-end="url(#arrowhead)" />
+  <text x="390" y="205" font-family="Arial" font-size="14" font-weight="bold" fill="#ffba49" text-anchor="middle">IF UNHEALTHY</text>
+  
+  <!-- Cloud Section -->
+  <rect x="480" y="50" width="300" height="300" rx="15" fill="#fff9f0" stroke="#ffba49" stroke-width="2" stroke-dasharray="5,5" />
+  <text x="630" y="80" font-family="Arial" font-size="18" font-weight="bold" fill="#ffba49" text-anchor="middle">CLOUD: Tokkatot Server</text>
+  
+  <!-- Ensemble Box -->
+  <rect x="510" y="120" width="240" height="100" rx="10" fill="#ffba49" />
+  <text x="630" y="155" font-family="Arial" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">Safety-First Ensemble</text>
+  <text x="630" y="180" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">EfficientNetB0 + DenseNet121</text>
+  <text x="630" y="200" font-family="Arial" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Voting Architecture</text>
+  
+  <!-- Alert Output -->
+  <rect x="530" y="260" width="200" height="50" rx="25" fill="#ef5b5b" />
+  <text x="630" y="292" font-family="Arial" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">FARMER ALERT</text>
+  
+  <!-- Definitions -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffba49" />
+    </marker>
+  </defs>
+</svg>

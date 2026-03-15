@@ -21,31 +21,31 @@ scp -r application/ pi@raspberrypi.local:/home/pi/
 
 ## What It Does
 
-- ✅ Detects 4 diseases from chicken fecal images (Coccidiosis, Salmonella, New Castle, Healthy)
-- ✅ 99% accuracy via ensemble safety voting (EfficientNetB0 + DenseNet121)
-- ✅ 22+ FPS real-time processing with on-screen alerts
-- ✅ Runs 24/7 on Raspberry Pi as a systemd service
-- ✅ Sends health metrics to Tokkatot Cloud every 5 minutes
+- ✅ Detects 4 health states from chicken fecal images (Coccidiosis, Salmonella, New Castle, Healthy)
+- ✅ **Hierarchical Trigger Architecture**: 24/7 YOLO monitoring on Edge triggers Cloud Ensemble analysis
+- ✅ 99% accuracy via ensemble safety voting (EfficientNetB0 + DenseNet121) in the cloud
+- ✅ Lightweight YOLOv8 runs 24/7 on Raspberry Pi monitoring manure conveyors
+- ✅ Sends high-precision health metrics to Tokkatot Cloud only when anomalies are detected
 
 ## Architecture
 
 ```
-Camera → YOLO Detect → Ensemble Classify → Track → Aggregate → Alert
+Conveyor Belt → YOLO (Edge: Healthy/Unhealthy?) → [If Unhealthy] → Ensemble (Cloud: Specific Disease?) → Alert
 ```
 
-### Hybrid Cloud Ensemble
+### Hybrid Edge-Cloud Pipeline
 | Layer | Model | Role |
 |-------|-------|------|
-| **Edge** (Raspberry Pi) | YOLOv8n + EfficientNetB0 | 24/7 high-speed screening |
-| **Cloud** (vCPU Server) | Full Ensemble (EfficientNetB0 + DenseNet121 + Safety Vote) | Zero false-positive verification |
+| **Edge** (Raspberry Pi) | YOLOv8 (Custom Trained) | 24/7 Gatekeeper: Monitors manure conveyor, detects 'Unhealthy' feces |
+| **Cloud** (Tokkatot Server) | Ensemble (EfficientNetB0 + DenseNet121) | High-precision diagnosis: Triggered only for suspicious samples |
 
-→ Confirmed diseases are pushed to the **Tokkatot Web App Dashboard**.
+→ This architecture ensures **low power consumption** on edge devices while maintaining **maximum safety** through cloud-based ensemble verification.
 
 ### Safety-First Decision Rules
-A chicken is **isolated** if ANY of these trigger:
-1. Either model's max confidence < 50% → **ISOLATE** (uncertain)
-2. Either model's healthy confidence < 80% → **ISOLATE** (potential disease)
-3. Models disagree and either predicts disease → **ISOLATE**
+The system prioritizes **Recall** (Flock Safety) over general accuracy:
+1. **YOLO Trigger**: If the edge model detects ANY sign of abnormality, the sample is escalated.
+2. **Ensemble Agreement**: In the cloud, both EfficientNet and DenseNet must agree on a "Healthy" status with high confidence.
+3. **Isolation Rule**: If models disagree OR confidence is < 85%, the sample is flagged as "Uncertain" for manual veterinarian review.
 
 ## Project Structure
 

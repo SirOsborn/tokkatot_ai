@@ -1,47 +1,53 @@
 # Architecture
 
-## Data Flow
+## Data Flow (Hierarchical Trigger)
 
 ```
-Camera Input (webcam/video/demo)
+[EDGE: Raspberry Pi]
+    Manure Conveyor Video Stream
     ↓
-Interface (get frame)
+    YOLOv8 (Fast Screening: Healthy vs. Unhealthy)
     ↓
-Processor (YOLO detect → DenseNet classify)
+    (IF UNHEALTHY DETECTED)
     ↓
-Tracker (assign IDs to birds)
+    Capture High-Res Image → Upload to Cloud
     ↓
-Aggregator (collect 5-min anomaly window)
+[CLOUD: Tokkatot Server]
+    Ensemble Inference (EfficientNetB0 + DenseNet121)
     ↓
-Display (annotate frame with results)
+    Voting Architecture (Safety-First Consensus)
     ↓
-Services (send alerts, metrics, logs)
+    Result: [Coccidiosis | Newcastle | Salmonella | Healthy | Uncertain]
     ↓
-Output (stream/save/display)
+    Services (Farmer Alerts, IoT Dashboard, Metric Logging)
 ```
 
 ## Component Details
 
-### Backend (Core System)
-- **core/**: ML pipeline (550 lines, immutable)
-- **services/**: Business logic (alerts, metrics, logging)
-- **utils/**: Config, transforms, logging
-- **api/**: REST endpoints for Tokkatot Web App integration
+### Edge Layer (Screening)
+- **Model**: Custom YOLOv8 (TFLite/INT8 Quantized)
+- **Frequency**: 24/7 continuous monitoring.
+- **Goal**: Minimize false negatives at the source with zero cloud cost for healthy samples.
 
-### Deployment
-- **Docker/**: Container config
-- **systemd/**: Linux service file
-- **Cloud/**: Monitoring integration
+### Cloud Layer (Diagnosis)
+- **Model**: Ensemble (EfficientNetB0 + DenseNet121)
+- **Mechanism**: Hard voting with confidence thresholding.
+- **Goal**: High-precision classification of specific diseases.
+
+### Services
+- **Cloud Sync**: Manages the upload of suspicious frames.
+- **Alert System**: Real-time push notifications to the Tokkatot Web App.
+- **Inference Service**: Wraps the ensemble model for scalable cloud processing.
 
 ## Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| Inference | 15-30 FPS |
-| GPU Memory | <2 GB |
-| CPU | <60% |
-| Disk | <500 MB |
-| Alerts | Real-time +0ms |
+| Layer | Metric | Target |
+|-------|--------|--------|
+| **Edge** | Inference Latency | <50ms (YOLO) |
+| **Edge** | 24/7 Stability | 100% Uptime |
+| **Cloud** | Ensemble Accuracy | >99% |
+| **Cloud** | Processing Time | <2s per upload |
+| **Alerts** | Notification Delay | <5s from detection |
 
 ## Files NOT Changed
 

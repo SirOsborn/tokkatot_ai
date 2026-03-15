@@ -48,4 +48,5 @@ python ../../application/app.py --demo --image <image_path> --yolo-model ../../a
 - [ ] `application/yolov8_custom.pt` - Trained model (run steps 2-3)
 
 ## Status
-⏳ Scripts ready — run step 1 to generate labels, then step 2 to train.
+✅ **Core Architecture Shift**: YOLOv8 is now the primary Edge Gatekeeper.
+⏳ Scripts ready — Generating labels from the 400k image dataset, then training for binary Healthy/Unhealthy classification.
