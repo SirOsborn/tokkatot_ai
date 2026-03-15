@@ -17,6 +17,8 @@ RUN npm cache clean --force && rm -rf node_modules package-lock.json && npm inst
 # Copy all source files
 COPY . .
 
+# Explicitly install @tailwindcss/oxide without optional dependencies
+RUN npm install @tailwindcss/oxide --legacy-peer-deps --omit=optional
 # Remove problematic rollup native binding
 RUN rm -rf node_modules/rollup/dist/native.js
 # Build the app (if using Vite or similar)
