@@ -1,7 +1,8 @@
 # Use official Node.js image
 FROM node:18-alpine
-# Add environment variable to fix native binding issue
+# Add environment variables to fix native binding issue
 ENV NODE_OPTIONS=--openssl-legacy-provider
+ENV npm_config_optional=false
 
 # Set working directory
 WORKDIR /app
