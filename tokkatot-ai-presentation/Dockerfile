@@ -1,5 +1,5 @@
 # Use official Node.js image (Debian-based)
-FROM node:18
+FROM node:20
 # Add environment variable to fix native binding issue
 ENV NODE_OPTIONS=--openssl-legacy-provider
 # Set working directory
