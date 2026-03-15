@@ -5,11 +5,11 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package.json and package-lock.json (if exists)
+
+# Remove node_modules and package-lock.json to fix npm bug
 COPY package.json .
 COPY package-lock.json .
-
-# Install dependencies
-RUN npm install --production
+RUN rm -rf node_modules package-lock.json && npm install --production
 
 # Copy all source files
 COPY . .
