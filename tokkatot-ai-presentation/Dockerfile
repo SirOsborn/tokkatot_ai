@@ -1,27 +1,23 @@
 # Use official Node.js image (Debian-based)
-FROM node:20
-# Add environment variable to fix native binding issue
-ENV NODE_OPTIONS=--openssl-legacy-provider
+FROM node:20-slim
+
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Remove node_modules and package-lock.json to fix npm bug
-COPY package.json .
-COPY package-lock.json .
-RUN npm cache clean --force && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --omit=optional && npm rebuild
+# Install dependencies including optional ones (needed for platform-specific binaries)
+RUN npm install --legacy-peer-deps --include=optional
 
 # Copy all source files
 COPY . .
 
-# Explicitly install @tailwindcss/oxide without optional dependencies
-RUN npm install @tailwindcss/oxide --legacy-peer-deps --omit=optional
-# Build the app (if using Vite or similar)
+# Build the app
 RUN npm run build
 
-# Expose port (default for Vite preview is 4173, change if needed)
+# Expose port (default for Vite preview is 4173)
 EXPOSE 4173
 
-# Start the app (Vite preview)
-CMD ["npm", "run", "preview"]
+# Start the app (Vite preview) on the port assigned by Railway
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4173"]
