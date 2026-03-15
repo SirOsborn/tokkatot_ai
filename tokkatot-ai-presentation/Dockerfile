@@ -11,7 +11,7 @@ WORKDIR /app
 # Remove node_modules and package-lock.json to fix npm bug
 COPY package.json .
 COPY package-lock.json .
-RUN npm cache clean --force && rm -rf node_modules package-lock.json && npm ci || npm install --legacy-peer-deps && npm rebuild
+RUN npm cache clean --force && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && npm rebuild
 
 # Copy all source files
 COPY . .
